@@ -1,0 +1,1466 @@
+{
+	"info": {
+		"_postman_id": "neuroforge-sdlc-api-collection",
+		"name": "NeuroForge Enterprise SDLC Platform - Complete Collection",
+		"description": "Complete REST API Collection with all 70 endpoints (GET, POST, PUT, PATCH, DELETE) across Modules 0 through 9",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"item": [
+		{
+			"name": "0. Foundation & Health",
+			"item": [
+				{
+					"name": "GET - Health Check (Public)",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "health"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "1. Authentication & User Management",
+			"item": [
+				{
+					"name": "POST - Register User (Public)",
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sarah Connor\",\n  \"email\": \"pm@neuroforge.com\",\n  \"password\": \"Password@123\",\n  \"role\": \"ROLE_PROJECT_MANAGER\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "POST - Login (Auto-Saves JWT Token)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.success && jsonData.data && jsonData.data.token) {",
+									"    pm.collectionVariables.set(\"jwt_token\", jsonData.data.token);",
+									"    console.log(\"JWT Token saved successfully:\", jsonData.data.token);",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": { "type": "noauth" },
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"pm@neuroforge.com\",\n  \"password\": \"Password@123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "GET - Current User Profile (/me)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me"]
+						}
+					}
+				},
+				{
+					"name": "GET - All Users (Admin/PM)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users"]
+						}
+					}
+				},
+				{
+					"name": "GET - Active Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "active"]
+						}
+					}
+				},
+				{
+					"name": "GET - User By ID (Admin/PM)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/users/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update User (Admin)",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Sarah Connor Updated\",\n  \"role\": \"ROLE_PROJECT_MANAGER\",\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Toggle User Active Status (Admin)",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"isActive\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Change Password (/me)",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"currentPassword\": \"Password@123\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/users/me/change-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "users", "me", "change-password"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2. Project Management",
+			"item": [
+				{
+					"name": "POST - Create Project",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"AI Cloud DevOps Suite\",\n  \"description\": \"Intelligent CI/CD and automated SDLC management platform.\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects"]
+						}
+					}
+				},
+				{
+					"name": "GET - All Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects"]
+						}
+					}
+				},
+				{
+					"name": "GET - My Owned Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/my-projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "my-projects"]
+						}
+					}
+				},
+				{
+					"name": "GET - Project By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Project (Full Edit)",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"AI Cloud DevOps Suite Enterprise\",\n  \"description\": \"Updated project description.\",\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update Project Status",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Active\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Project (Admin)",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "3. Team Management",
+			"item": [
+				{
+					"name": "POST - Create Team in Project",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teamName\": \"Core Engineering Team\",\n  \"description\": \"Specialized in AI models and backend APIs.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/teams",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "teams"]
+						}
+					}
+				},
+				{
+					"name": "GET - Teams By Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/teams",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "teams"]
+						}
+					}
+				},
+				{
+					"name": "GET - Team By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Team",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"teamName\": \"Core Engineering & Platform Team\",\n  \"description\": \"Updated team scope.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Add Member to Team",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 1,\n  \"roleInTeam\": \"Team Lead\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1/members",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1", "members"]
+						}
+					}
+				},
+				{
+					"name": "GET - Team Members",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1/members",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1", "members"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Remove Member from Team",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/teams/1/members/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "teams", "1", "members", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "4. Requirements & User Stories",
+			"item": [
+				{
+					"name": "POST - Create Requirement",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"OAuth2 Single Sign-On Integration\",\n  \"description\": \"Allow enterprise users to securely authenticate using GitHub and Google Workspace.\",\n  \"priority\": \"High\",\n  \"status\": \"Approved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/requirements",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "requirements"]
+						}
+					}
+				},
+				{
+					"name": "GET - Requirements by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/requirements",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "requirements"]
+						}
+					}
+				},
+				{
+					"name": "GET - Requirement by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Requirement",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"OAuth2 & SAML SSO Integration\",\n  \"description\": \"Expanded description with SAML support.\",\n  \"priority\": \"High\",\n  \"status\": \"Approved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update Requirement Status",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Approved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Requirement",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Create User Story",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"storyTitle\": \"GitHub SSO Callback Handler\",\n  \"acceptanceCriteria\": \"Redirect to GitHub authorization URL, capture callback code, issue NeuroForge JWT token.\",\n  \"priority\": \"High\",\n  \"storyPoints\": 5,\n  \"status\": \"Approved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1/user-stories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1", "user-stories"]
+						}
+					}
+				},
+				{
+					"name": "GET - User Stories by Requirement",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/requirements/1/user-stories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "requirements", "1", "user-stories"]
+						}
+					}
+				},
+				{
+					"name": "GET - Full Product Backlog",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/user-stories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "user-stories"]
+						}
+					}
+				},
+				{
+					"name": "GET - User Story by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/user-stories/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user-stories", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update User Story",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"storyTitle\": \"GitHub & Google SSO Callback Handler\",\n  \"acceptanceCriteria\": \"Updated criteria.\",\n  \"priority\": \"High\",\n  \"storyPoints\": 8,\n  \"status\": \"Approved\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user-stories/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user-stories", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update User Story Status",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/user-stories/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user-stories", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete User Story",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/user-stories/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user-stories", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "5. AI-Assisted Requirement Engineering",
+			"item": [
+				{
+					"name": "POST - AI Improve Requirement (SRS)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"focusArea\": \"Security, High Availability & Enterprise Compliance\",\n  \"targetAudience\": \"Enterprise Architecture & DevOps Teams\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/requirements/1/improve",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "requirements", "1", "improve"]
+						}
+					}
+				},
+				{
+					"name": "POST - AI Generate User Stories",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"targetStoryCount\": 3,\n  \"additionalContext\": \"Focus on backend API, token validation, and error telemetry.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/requirements/1/generate-stories",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "requirements", "1", "generate-stories"]
+						}
+					}
+				},
+				{
+					"name": "POST - AI Architecture & Tech Stack Recommendations",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"preferredDatabase\": \"MySQL 8.0 with InnoDB\",\n  \"deploymentTarget\": \"Docker / Kubernetes Containerized Cluster\",\n  \"securityLevel\": \"High (JWT + RBAC + Audit Telemetry)\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/requirements/1/architecture",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "requirements", "1", "architecture"]
+						}
+					}
+				},
+				{
+					"name": "GET - AI Suggestions for Requirement",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/requirements/1/suggestions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "requirements", "1", "suggestions"]
+						}
+					}
+				},
+				{
+					"name": "GET - AI Suggestion by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/suggestions/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "suggestions", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Accept AI Suggestion (Auto-Creates Stories)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Accepted\",\n  \"applyToBacklog\": true,\n  \"reviewerFeedback\": \"Approved for Sprint planning.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/suggestions/1/review",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "suggestions", "1", "review"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "6. Sprint & Task Management",
+			"item": [
+				{
+					"name": "POST - Create Sprint",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sprintName\": \"Sprint 1 - Authentication & Core API\",\n  \"goal\": \"Deliver secure JWT user auth, team management, and requirement backlog.\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2026-09-15\",\n  \"status\": \"Planned\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/sprints",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "sprints"]
+						}
+					}
+				},
+				{
+					"name": "GET - Sprints by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/sprints",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "sprints"]
+						}
+					}
+				},
+				{
+					"name": "GET - Active Sprint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/sprints/active",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "sprints", "active"]
+						}
+					}
+				},
+				{
+					"name": "GET - Sprint by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Sprint",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sprintName\": \"Sprint 1 - Auth & Security\",\n  \"goal\": \"Updated sprint goal.\",\n  \"startDate\": \"2026-09-01\",\n  \"endDate\": \"2026-09-20\",\n  \"status\": \"Planned\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Start Sprint (Activate)",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1/start",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1", "start"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Complete Sprint",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1/complete",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1", "complete"]
+						}
+					}
+				},
+				{
+					"name": "GET - Sprint Kanban Board",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1/kanban",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1", "kanban"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Sprint",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Create Task in Sprint",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sprintId\": 1,\n  \"storyId\": 1,\n  \"assignedToUserId\": 1,\n  \"title\": \"Implement JWT Token Validation Filter\",\n  \"description\": \"Write JJWT 0.12.x parsing logic with HMAC-SHA256 signature verification.\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"dueDate\": \"2026-09-05\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks"]
+						}
+					}
+				},
+				{
+					"name": "GET - Sprint Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1", "tasks"]
+						}
+					}
+				},
+				{
+					"name": "GET - Tasks by User Story",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/user-stories/1/tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user-stories", "1", "tasks"]
+						}
+					}
+				},
+				{
+					"name": "GET - My Assigned Tasks (Developer View)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/my-tasks",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "my-tasks"]
+						}
+					}
+				},
+				{
+					"name": "GET - Task by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Task",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sprintId\": 1,\n  \"storyId\": 1,\n  \"assignedToUserId\": 1,\n  \"title\": \"Implement JJWT Filter & Custom Errors\",\n  \"description\": \"Updated description.\",\n  \"priority\": \"High\",\n  \"status\": \"In Progress\",\n  \"dueDate\": \"2026-09-08\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Move Task Status (Kanban Transition)",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"In Progress\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Reassign Task",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": 2\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1/assign",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1", "assign"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Task",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "7. AI Code Assistance",
+			"item": [
+				{
+					"name": "POST - AI Generate Task Implementation Code",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"language\": \"Java\",\n  \"framework\": \"Spring Boot 3.3 / Spring Security\",\n  \"specificRequirements\": \"Write full AuthTokenFilter with OncePerRequestFilter and bearer parsing.\",\n  \"includeComments\": true\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/tasks/1/generate-code",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "tasks", "1", "generate-code"]
+						}
+					}
+				},
+				{
+					"name": "POST - AI Code Review & Security Audit",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sourceCode\": \"public User findUser(String email) {\\n    return entityManager.createQuery(\\\"SELECT u FROM User u WHERE u.email = '\\\" + email + \\\"'\\\").getSingleResult();\\n}\",\n  \"language\": \"Java\",\n  \"reviewFocus\": \"OWASP SQL Injection, Performance & Best Practices\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/tasks/1/review-code",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "tasks", "1", "review-code"]
+						}
+					}
+				},
+				{
+					"name": "POST - AI Generate Unit Tests",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"testingFramework\": \"JUnit 5 + Mockito\",\n  \"includeEdgeCases\": true,\n  \"sourceCode\": \"public boolean validateToken(String token) { return token != null && !token.trim().isEmpty(); }\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/tasks/1/generate-unit-tests",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "tasks", "1", "generate-unit-tests"]
+						}
+					}
+				},
+				{
+					"name": "POST - AI Refactor Code Snippet",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"sourceCode\": \"for(int i=0; i<list.size(); i++) { if(list.get(i).isActive()) { activeList.add(list.get(i)); } }\",\n  \"language\": \"Java\",\n  \"refactorGoal\": \"Functional Java 17 Stream Pipeline & Immutable Lists\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/tasks/1/refactor-code",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "tasks", "1", "refactor-code"]
+						}
+					}
+				},
+				{
+					"name": "GET - AI Suggestions for Task",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/ai/tasks/1/suggestions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "ai", "tasks", "1", "suggestions"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8. Quality Assurance & Issue Tracking",
+			"item": [
+				{
+					"name": "POST - Create Test Case",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"taskId\": 1,\n  \"title\": \"Verify JWT Bearer Token Extraction on Protected Route\",\n  \"testType\": \"Security\",\n  \"steps\": \"1. Send GET /api/users/me with invalid token\\n2. Verify 401 Unauthorized\\n3. Send with valid token\\n4. Verify 200 OK\",\n  \"expectedResult\": \"401 on invalid token, 200 with user profile on valid token\",\n  \"status\": \"Draft\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test-cases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "test-cases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Test Cases by Task",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1/test-cases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1", "test-cases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Test Cases by Sprint",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/sprints/1/test-cases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "sprints", "1", "test-cases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Test Cases by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/test-cases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "test-cases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Test Case by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/test-cases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "test-cases", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Test Case",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Verify JWT Bearer Token Extraction & Expiry Handling\",\n  \"testType\": \"Security\",\n  \"steps\": \"Updated steps.\",\n  \"expectedResult\": \"Updated expected result.\",\n  \"status\": \"Draft\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test-cases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "test-cases", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Execute Test Case (Pass/Fail/Blocked)",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Passed\",\n  \"executionNotes\": \"Verified with Postman runner. All assertions passed.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/test-cases/1/execute",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "test-cases", "1", "execute"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Test Case",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/test-cases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "test-cases", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Report Bug / Issue",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"taskId\": 1,\n  \"title\": \"Expired Token returns 500 instead of 401 Unauthorized\",\n  \"description\": \"When ExpiredJwtException is thrown, GlobalExceptionHandler throws unhandled 500 error instead of 401.\",\n  \"severity\": \"High\",\n  \"priority\": \"High\",\n  \"status\": \"Open\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/issues",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues"]
+						}
+					}
+				},
+				{
+					"name": "GET - Issues by Task",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/tasks/1/issues",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "tasks", "1", "issues"]
+						}
+					}
+				},
+				{
+					"name": "GET - Issues by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/issues",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "issues"]
+						}
+					}
+				},
+				{
+					"name": "GET - My Assigned Issues (Developer View)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/my-assigned",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "my-assigned"]
+						}
+					}
+				},
+				{
+					"name": "GET - My Reported Issues (Tester View)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/my-reported",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "my-reported"]
+						}
+					}
+				},
+				{
+					"name": "GET - Issue by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Issue Details",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Expired Token returns 500 error\",\n  \"description\": \"Updated issue description with reproduction steps.\",\n  \"severity\": \"Critical\",\n  \"priority\": \"High\",\n  \"status\": \"Open\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update Issue Status (Resolve/Close)",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Resolved\",\n  \"resolutionComment\": \"Fixed in AuthEntryPointJwt. Handles ExpiredJwtException cleanly with 401.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Reassign Issue",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/1/assign?userId=2",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "1", "assign"],
+							"query": [{ "key": "userId", "value": "2" }]
+						}
+					}
+				},
+				{
+					"name": "GET - Project QA Health Scorecard & Pass Rate",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/qa-metrics",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "qa-metrics"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Issue",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/issues/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "issues", "1"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "9. Release & Deployment Management",
+			"item": [
+				{
+					"name": "POST - Create Release (Versioned)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"projectId\": 1,\n  \"versionNumber\": \"v1.0.0\",\n  \"releaseName\": \"Initial Enterprise Launch\",\n  \"releaseNotes\": \"First production release of NeuroForge SDLC Platform. Includes JWT auth, project management, AI requirement engineering, sprint management, AI code assistance, and QA tracking.\",\n  \"status\": \"Draft\",\n  \"releaseDate\": \"2026-09-15\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/releases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Releases by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/releases",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "releases"]
+						}
+					}
+				},
+				{
+					"name": "GET - Release by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/releases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases", "1"]
+						}
+					}
+				},
+				{
+					"name": "PUT - Update Release Details",
+					"request": {
+						"method": "PUT",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"releaseName\": \"Initial Enterprise Launch - GA\",\n  \"releaseNotes\": \"Updated release notes with final changelog and hotfix patch.\",\n  \"status\": \"In Progress\",\n  \"releaseDate\": \"2026-09-20\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/releases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update Release Status",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/releases/1/status?status=Released",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases", "1", "status"],
+							"query": [{ "key": "status", "value": "Released" }]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Release",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/releases/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases", "1"]
+						}
+					}
+				},
+				{
+					"name": "POST - Trigger Deployment (Dev/Staging/Prod)",
+					"request": {
+						"method": "POST",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"releaseId\": 1,\n  \"environment\": \"Staging\",\n  \"status\": \"In Progress\",\n  \"notes\": \"Deploying v1.0.0 to Staging environment for final QA validation before Production push.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deployments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deployments"]
+						}
+					}
+				},
+				{
+					"name": "GET - Deployments by Project",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/deployments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "deployments"]
+						}
+					}
+				},
+				{
+					"name": "GET - Deployments by Release",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/releases/1/deployments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "releases", "1", "deployments"]
+						}
+					}
+				},
+				{
+					"name": "GET - My Deployments (DevOps Engineer View)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/deployments/my-deployments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deployments", "my-deployments"]
+						}
+					}
+				},
+				{
+					"name": "GET - Deployment by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/deployments/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deployments", "1"]
+						}
+					}
+				},
+				{
+					"name": "PATCH - Update Deployment Status (Success/Failed/Rolled Back)",
+					"request": {
+						"method": "PATCH",
+						"header": [{ "key": "Content-Type", "value": "application/json" }],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"Success\",\n  \"notes\": \"Deployment to Staging completed successfully. All health checks passed. Pods are running.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/deployments/1/status",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deployments", "1", "status"]
+						}
+					}
+				},
+				{
+					"name": "GET - Project Release Pipeline Health Dashboard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/projects/1/release-health",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "projects", "1", "release-health"]
+						}
+					}
+				},
+				{
+					"name": "DELETE - Delete Deployment",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/deployments/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "deployments", "1"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	]
+}

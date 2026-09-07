@@ -1,0 +1,42 @@
+# ============================================================
+# NeuroForge Enterprise SDLC Platform - .gitignore
+# ============================================================
+
+# Compiled class files & build directories
+**/target/
+target/
+*.class
+
+# Maven wrapper and package binaries
+*.jar
+*.war
+*.ear
+
+# IDE & Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+
+# Log files
+*.log
+logs/
+
+# Sensitive & Local configuration files (Passwords, API Keys, Tokens)
+**/*local.properties
+**/application-local.properties
+.env
+.env.*
+!.env.example
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# MySQL Workbench local backups
+*.mwb.bak
