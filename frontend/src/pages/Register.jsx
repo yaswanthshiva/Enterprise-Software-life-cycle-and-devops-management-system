@@ -17,8 +17,8 @@ export const Register = () => {
   const roles = [
     { id: 'DEVELOPER', label: 'Developer', desc: 'Code assist & tasks' },
     { id: 'PROJECT_MANAGER', label: 'Manager', desc: 'Projects & governance' },
-    { id: 'QA_ENGINEER', label: 'QA Engineer', desc: 'Test cases & issues' },
-    { id: 'DEVOPS', label: 'DevOps', desc: 'Releases & deployments' },
+    { id: 'TESTER', label: 'QA Engineer', desc: 'Test cases & issues' },
+    { id: 'DEVOPS_ENGINEER', label: 'DevOps', desc: 'Releases & deployments' },
     { id: 'ADMIN', label: 'Admin', desc: 'Full system control' },
   ];
 

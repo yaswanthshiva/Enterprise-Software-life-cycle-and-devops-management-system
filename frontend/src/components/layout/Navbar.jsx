@@ -34,14 +34,12 @@ export const Navbar = () => {
   }, []);
 
   const getRoleBadgeClass = (role) => {
-    switch (role) {
-      case 'ADMIN': return 'badge-admin';
-      case 'PROJECT_MANAGER': return 'badge-pm';
-      case 'DEVELOPER': return 'badge-dev';
-      case 'QA_ENGINEER': return 'badge-qa';
-      case 'DEVOPS': return 'badge-devops';
-      default: return 'badge-dev';
-    }
+    const r = (role || '').toUpperCase();
+    if (r.includes('ADMIN')) return 'badge-admin';
+    if (r.includes('MANAGER') || r.includes('PROJECT')) return 'badge-pm';
+    if (r.includes('TEST') || r.includes('QA')) return 'badge-qa';
+    if (r.includes('DEVOPS')) return 'badge-devops';
+    return 'badge-dev';
   };
 
   return (
