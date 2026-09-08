@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neuroforge.security.UserDetailsImpl;
+import org.springframework.security.access.AccessDeniedException;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -68,6 +71,47 @@ public class ProjectService {
         return ProjectResponse.fromEntity(project);
     }
 
+    /**
+     * Enforces Strict Project Ownership (Owner-Only Access):
+     * Only the designated project owner or an Administrator can modify project settings.
+     */
+    public void checkProjectOwnership(Project project, UserDetailsImpl currentUser) {
+        if (currentUser == null) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+        boolean isOwner = project.getOwner() != null && project.getOwner().getUserId().equals(currentUser.getUserId());
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_ADMIN"));
+
+        if (!isOwner && !isAdmin) {
+            String ownerName = project.getOwner() != null ? project.getOwner().getName() : "another user";
+            throw new AccessDeniedException("Access denied: You are not the owner of this project. Only the project owner (" + ownerName + ") or an Administrator can modify it.");
+        }
+    }
+
+    @Transactional
+    public ProjectResponse updateProject(UserDetailsImpl currentUser, Long projectId, ProjectUpdateRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
+
+        checkProjectOwnership(project, currentUser);
+
+        if (request.getName() != null && !request.getName().trim().isEmpty()) {
+            project.setName(request.getName().trim());
+        }
+        if (request.getDescription() != null) {
+            project.setDescription(request.getDescription());
+        }
+        if (request.getStatus() != null && !request.getStatus().trim().isEmpty()) {
+            project.setStatus(request.getStatus().trim());
+        }
+
+        Project updated = projectRepository.save(project);
+        log.info("Project updated: id={}, name={}, status={}, modifiedBy={}", 
+                updated.getProjectId(), updated.getName(), updated.getStatus(), currentUser.getEmail());
+        return ProjectResponse.fromEntity(updated);
+    }
+
     @Transactional
     public ProjectResponse updateProject(Long projectId, ProjectUpdateRequest request) {
         Project project = projectRepository.findById(projectId)
@@ -89,6 +133,20 @@ public class ProjectService {
     }
 
     @Transactional
+    public ProjectResponse updateProjectStatus(UserDetailsImpl currentUser, Long projectId, String status) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
+
+        checkProjectOwnership(project, currentUser);
+
+        project.setStatus(status.trim());
+        Project updated = projectRepository.save(project);
+        log.info("Project status updated: id={}, status={}, modifiedBy={}", 
+                updated.getProjectId(), status, currentUser.getEmail());
+        return ProjectResponse.fromEntity(updated);
+    }
+
+    @Transactional
     public ProjectResponse updateProjectStatus(Long projectId, String status) {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
@@ -97,6 +155,18 @@ public class ProjectService {
         Project updated = projectRepository.save(project);
         log.info("Project status updated: id={}, status={}", updated.getProjectId(), status);
         return ProjectResponse.fromEntity(updated);
+    }
+
+    @Transactional
+    public void deleteProject(UserDetailsImpl currentUser, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
+
+        checkProjectOwnership(project, currentUser);
+
+        project.setStatus("Archived");
+        projectRepository.save(project);
+        log.info("Project archived: id={}, archivedBy={}", projectId, currentUser.getEmail());
     }
 
     @Transactional

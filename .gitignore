@@ -6,6 +6,10 @@
 **/target/
 target/
 *.class
+node_modules/
+**/node_modules/
+dist/
+**/dist/
 
 # Maven wrapper and package binaries
 *.jar

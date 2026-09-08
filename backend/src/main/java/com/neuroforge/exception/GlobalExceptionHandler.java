@@ -66,7 +66,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ApiResponse<Void>> handleAccessDeniedException(AccessDeniedException ex) {
-        ApiResponse<Void> response = ApiResponse.error("Access denied: You do not have permission to access this resource");
+        String msg = (ex.getMessage() != null && !ex.getMessage().trim().isEmpty())
+                ? ex.getMessage()
+                : "Access denied: You do not have permission to access this resource";
+        ApiResponse<Void> response = ApiResponse.error(msg);
         return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
     }
 

@@ -59,26 +59,30 @@ public class ProjectController {
     @PutMapping("/{projectId}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<ProjectResponse>> updateProject(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long projectId,
             @Valid @RequestBody ProjectUpdateRequest request) {
-        ProjectResponse response = projectService.updateProject(projectId, request);
+        ProjectResponse response = projectService.updateProject(currentUser, projectId, request);
         return ResponseEntity.ok(ApiResponse.success("Project updated successfully", response));
     }
 
     @PatchMapping("/{projectId}/status")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<ProjectResponse>> updateProjectStatus(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long projectId,
             @RequestBody Map<String, String> statusMap) {
         String status = statusMap.getOrDefault("status", "Active");
-        ProjectResponse response = projectService.updateProjectStatus(projectId, status);
+        ProjectResponse response = projectService.updateProjectStatus(currentUser, projectId, status);
         return ResponseEntity.ok(ApiResponse.success("Project status updated successfully", response));
     }
 
     @DeleteMapping("/{projectId}")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<ApiResponse<Void>> deleteProject(@PathVariable Long projectId) {
-        projectService.deleteProject(projectId);
+    public ResponseEntity<ApiResponse<Void>> deleteProject(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @PathVariable Long projectId) {
+        projectService.deleteProject(currentUser, projectId);
         return ResponseEntity.ok(ApiResponse.success("Project archived successfully", null));
     }
 }
