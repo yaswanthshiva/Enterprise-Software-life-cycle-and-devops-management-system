@@ -11,6 +11,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import com.neuroforge.security.UserDetailsImpl;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,9 +28,10 @@ public class TeamController {
     @PostMapping("/projects/{projectId}/teams")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<TeamResponse>> createTeam(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long projectId,
             @Valid @RequestBody TeamCreateRequest request) {
-        TeamResponse response = teamService.createTeam(projectId, request);
+        TeamResponse response = teamService.createTeam(currentUser, projectId, request);
         return new ResponseEntity<>(
                 ApiResponse.success("Team created successfully", response),
                 HttpStatus.CREATED
@@ -50,25 +53,29 @@ public class TeamController {
     @PutMapping("/teams/{teamId}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<TeamResponse>> updateTeam(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long teamId,
             @Valid @RequestBody TeamUpdateRequest request) {
-        TeamResponse response = teamService.updateTeam(teamId, request);
+        TeamResponse response = teamService.updateTeam(currentUser, teamId, request);
         return ResponseEntity.ok(ApiResponse.success("Team updated successfully", response));
     }
 
     @DeleteMapping("/teams/{teamId}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
-    public ResponseEntity<ApiResponse<Void>> deleteTeam(@PathVariable Long teamId) {
-        teamService.deleteTeam(teamId);
+    public ResponseEntity<ApiResponse<Void>> deleteTeam(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @PathVariable Long teamId) {
+        teamService.deleteTeam(currentUser, teamId);
         return ResponseEntity.ok(ApiResponse.success("Team deleted successfully", null));
     }
 
     @PostMapping("/teams/{teamId}/members")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<TeamMemberResponse>> addMemberToTeam(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long teamId,
             @Valid @RequestBody TeamMemberAddRequest request) {
-        TeamMemberResponse response = teamService.addMemberToTeam(teamId, request);
+        TeamMemberResponse response = teamService.addMemberToTeam(currentUser, teamId, request);
         return new ResponseEntity<>(
                 ApiResponse.success("Member added to team successfully", response),
                 HttpStatus.CREATED
@@ -84,9 +91,10 @@ public class TeamController {
     @DeleteMapping("/teams/{teamId}/members/{userId}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER')")
     public ResponseEntity<ApiResponse<Void>> removeMemberFromTeam(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
             @PathVariable Long teamId,
             @PathVariable Long userId) {
-        teamService.removeMemberFromTeam(teamId, userId);
+        teamService.removeMemberFromTeam(currentUser, teamId, userId);
         return ResponseEntity.ok(ApiResponse.success("Member removed from team successfully", null));
     }
 }

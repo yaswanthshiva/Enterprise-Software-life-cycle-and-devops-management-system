@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { authApi } from '../api/authApi';
-import { Users2, ShieldCheck, Filter, RefreshCw, AlertCircle, Search } from 'lucide-react';
+import { Users2, ShieldCheck, Filter, RefreshCw, AlertCircle, Search, ShieldAlert } from 'lucide-react';
 
 export const UserDirectory = () => {
+  const { user, canManageUsers } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -10,6 +12,10 @@ export const UserDirectory = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
   const fetchUsers = async () => {
+    if (!canManageUsers) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -47,6 +53,23 @@ export const UserDirectory = () => {
       default: return 'badge-dev';
     }
   };
+
+  if (!canManageUsers) {
+    return (
+      <div className="glass-card" style={{ padding: '70px 20px', textAlign: 'center' }}>
+        <ShieldAlert size={48} color="var(--danger)" style={{ marginBottom: '16px' }} />
+        <h2 style={{ marginBottom: '10px' }}>Access Clearance Restricted</h2>
+        <p style={{ color: 'var(--text-secondary)', maxWidth: '520px', margin: '0 auto 24px auto', fontSize: '0.9rem' }}>
+          The enterprise user directory contains organizational staffing records and requires Administrator or Project Manager security credentials.
+        </p>
+        <div style={{ display: 'inline-block' }}>
+          <span className="badge" style={{ padding: '6px 14px', fontSize: '0.82rem', borderColor: 'var(--border-subtle)' }}>
+            Logged in as: <strong>{user?.fullName || user?.name || user?.email}</strong> ({user?.role || 'Member'})
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>

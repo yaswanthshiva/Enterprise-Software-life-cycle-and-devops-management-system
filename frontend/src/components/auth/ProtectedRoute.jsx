@@ -43,22 +43,42 @@ export const ProtectedRoute = ({ children, allowedRoles }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return (
-      <div style={{
-        padding: '60px 20px',
-        textAlign: 'center',
-        maxWidth: '500px',
-        margin: '80px auto',
-      }} className="glass-card">
-        <ShieldAlert size={48} color="var(--danger)" style={{ marginBottom: '16px' }} />
-        <h2 style={{ marginBottom: '8px' }}>Access Restricted</h2>
-        <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
-          Your role (<span className="badge badge-admin">{user.role}</span>) does not have permission to view this resource.
-        </p>
-        <a href="/" className="btn btn-secondary">Return to Dashboard</a>
-      </div>
-    );
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = (user.role || '').toUpperCase().replace(' ', '_');
+    const hasRole = allowedRoles.some((allowed) => {
+      const a = (allowed || '').toUpperCase().replace(' ', '_');
+      if (a === userRole) return true;
+      if (a.startsWith('ROLE_') && userRole === a.replace('ROLE_', '')) return true;
+      if (!a.startsWith('ROLE_') && ('ROLE_' + userRole) === a) return true;
+      if (a.includes('ADMIN') && userRole.includes('ADMIN')) return true;
+      if (a.includes('MANAGER') && (userRole.includes('MANAGER') || userRole.includes('PROJECT'))) return true;
+      if (a.includes('QA') || a.includes('TEST')) {
+        return userRole.includes('QA') || userRole.includes('TEST');
+      }
+      if (a.includes('DEV') && !a.includes('DEVOPS')) {
+        return userRole.includes('DEV') && !userRole.includes('DEVOPS');
+      }
+      if (a.includes('DEVOPS')) return userRole.includes('DEVOPS');
+      return false;
+    });
+
+    if (!hasRole) {
+      return (
+        <div style={{
+          padding: '60px 20px',
+          textAlign: 'center',
+          maxWidth: '500px',
+          margin: '80px auto',
+        }} className="glass-card">
+          <ShieldAlert size={48} color="var(--danger)" style={{ marginBottom: '16px' }} />
+          <h2 style={{ marginBottom: '8px' }}>Access Restricted</h2>
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+            Your role (<span className="badge" style={{ color: 'var(--danger)', borderColor: 'var(--danger-border)' }}>{user.role}</span>) does not have clearance to view this enterprise module.
+          </p>
+          <a href="/workspace" className="btn btn-secondary">Return to Overview</a>
+        </div>
+      );
+    }
   }
 
   return children;

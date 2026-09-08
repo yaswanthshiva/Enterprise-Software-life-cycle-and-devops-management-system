@@ -29,11 +29,23 @@ public enum Role {
         if (!clean.startsWith("ROLE_")) {
             clean = "ROLE_" + clean;
         }
+
+        // Direct enum or display name match
         for (Role role : Role.values()) {
-            if (role.name().equalsIgnoreCase(clean) || role.displayName.equalsIgnoreCase(roleStr.trim())) {
+            if (role.name().equalsIgnoreCase(clean) 
+                || role.displayName.equalsIgnoreCase(roleStr.trim())) {
                 return role;
             }
         }
+
+        // Robust alias matching
+        if (clean.contains("ADMIN")) return ROLE_ADMIN;
+        if (clean.contains("MANAGER") || clean.contains("LEAD")) return ROLE_PROJECT_MANAGER;
+        if (clean.contains("ANALYST")) return ROLE_BUSINESS_ANALYST;
+        if (clean.contains("TEST") || clean.contains("QA")) return ROLE_TESTER;
+        if (clean.contains("DEVOPS")) return ROLE_DEVOPS_ENGINEER;
+        if (clean.contains("DEV")) return ROLE_DEVELOPER;
+
         return ROLE_DEVELOPER;
     }
 }

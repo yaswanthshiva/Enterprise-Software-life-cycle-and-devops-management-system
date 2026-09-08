@@ -20,7 +20,7 @@ import {
 
 export const Sidebar = () => {
   const [collapsed, setCollapsed] = useState(false);
-  const { user, logout } = useAuth();
+  const { user, logout, canManageUsers } = useAuth();
 
   const navItems = [
     { to: '/workspace', label: 'Overview', icon: LayoutDashboard, exact: true },
@@ -33,9 +33,6 @@ export const Sidebar = () => {
     { to: '/workspace/qa', label: 'QA & Issues', icon: Bug },
     { to: '/workspace/releases', label: 'Releases & CI/CD', icon: Rocket },
   ];
-
-  // Admin and PM access to User Management
-  const canManageUsers = user?.role === 'ADMIN' || user?.role === 'PROJECT_MANAGER';
 
   return (
     <aside style={{
@@ -57,22 +54,51 @@ export const Sidebar = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: collapsed ? 'center' : 'space-between',
-        padding: collapsed ? '0' : '0 18px',
+        padding: collapsed ? '0 12px' : '0 18px',
         borderBottom: '1px solid var(--border-subtle)',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            width: '34px',
-            height: '34px',
-            borderRadius: '6px',
-            background: 'linear-gradient(135deg, var(--primary) 0%, #ff8c26 100%)',
+        <div
+          onClick={collapsed ? () => setCollapsed(false) : undefined}
+          style={{
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 15px var(--primary-glow)',
-          }}>
-            <Hexagon size={20} color="#000000" />
+            gap: '10px',
+            cursor: collapsed ? 'pointer' : 'default',
+          }}
+          title={collapsed ? 'Click logo to open sidebar' : undefined}
+          role={collapsed ? 'button' : undefined}
+          aria-label={collapsed ? 'Click logo to open sidebar' : undefined}
+        >
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '6px',
+              background: 'linear-gradient(135deg, var(--primary) 0%, #ff8c26 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: collapsed ? '0 0 18px var(--primary-glow)' : '0 0 12px var(--primary-glow)',
+              flexShrink: 0,
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              transform: collapsed ? 'scale(1.05)' : 'scale(1)',
+            }}
+            onMouseEnter={(e) => {
+              if (collapsed) {
+                e.currentTarget.style.transform = 'scale(1.15)';
+                e.currentTarget.style.boxShadow = '0 0 24px var(--primary)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (collapsed) {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 0 18px var(--primary-glow)';
+              }
+            }}
+          >
+            <Hexagon size={22} color="#000000" />
           </div>
+
           {!collapsed && (
             <span className="text-gradient-white" style={{
               fontFamily: 'var(--font-heading)',
@@ -85,22 +111,26 @@ export const Sidebar = () => {
           )}
         </div>
 
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--text-muted)',
-            cursor: 'pointer',
-            padding: '4px',
-            display: collapsed ? 'none' : 'flex',
-            alignItems: 'center',
-            borderRadius: '4px',
-          }}
-          title={collapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-        >
-          <ChevronLeft size={18} />
-        </button>
+        {!collapsed && (
+          <button
+            onClick={() => setCollapsed(true)}
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid var(--border-subtle)',
+              color: 'var(--text-muted)',
+              cursor: 'pointer',
+              padding: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '4px',
+              transition: 'all 0.15s ease',
+            }}
+            title="Collapse Sidebar"
+          >
+            <ChevronLeft size={16} />
+          </button>
+        )}
       </div>
 
       {/* Nav List */}

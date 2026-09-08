@@ -15,11 +15,12 @@ import {
   Layers,
   ArrowUpRight,
   AlertCircle,
-  Edit3
+  Edit3,
+  Shield
 } from 'lucide-react';
 
 export const Projects = () => {
-  const { user } = useAuth();
+  const { user, canCreateProject, canManageProjects } = useAuth();
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
@@ -33,13 +34,6 @@ export const Projects = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-
-  const roleStr = (user?.role || '').toUpperCase();
-  const canManageProjects =
-    roleStr.includes('ADMIN') ||
-    roleStr.includes('MANAGER') ||
-    roleStr.includes('PROJECT') ||
-    true;
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -141,14 +135,33 @@ export const Projects = () => {
             Refresh
           </button>
 
-          <button
-            className="btn btn-primary"
-            onClick={() => setIsCreateOpen(true)}
-            id="btn-create-project"
-          >
-            <Plus size={16} />
-            Create Project
-          </button>
+          {canCreateProject ? (
+            <button
+              className="btn btn-primary"
+              onClick={() => setIsCreateOpen(true)}
+              id="btn-create-project"
+            >
+              <Plus size={16} />
+              Create Project
+            </button>
+          ) : (
+            <span
+              className="badge"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '7px 12px',
+                color: 'var(--text-muted)',
+                borderColor: 'var(--border-subtle)',
+                fontSize: '0.8rem',
+              }}
+              title="Project creation requires Project Manager or Administrator clearance"
+            >
+              <Shield size={13} color="var(--text-muted)" />
+              {user?.role || 'Member'} (Read-Only)
+            </span>
+          )}
         </div>
       </div>
 
@@ -273,10 +286,16 @@ export const Projects = () => {
               ? 'No projects match your active search or filter criteria.'
               : 'No enterprise projects have been initiated in this workspace yet.'}
           </p>
-          <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)} id="btn-empty-create-project">
-            <Plus size={16} />
-            Create Project
-          </button>
+          {canCreateProject ? (
+            <button className="btn btn-primary" onClick={() => setIsCreateOpen(true)} id="btn-empty-create-project">
+              <Plus size={16} />
+              Create Project
+            </button>
+          ) : (
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', fontStyle: 'italic', margin: '0 auto' }}>
+              Project creation is restricted to Project Managers and Administrators. Contact your team lead to initiate scopes.
+            </p>
+          )}
         </div>
       ) : (
         <div style={{

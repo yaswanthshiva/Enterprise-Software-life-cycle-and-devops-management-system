@@ -15,6 +15,7 @@ import Profile from './pages/Profile';
 import UserDirectory from './pages/UserDirectory';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
+import Teams from './pages/Teams';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -55,17 +56,9 @@ function App() {
             {/* SDLC Module 02: Project Portfolios & Governance */}
             <Route path="projects" element={<Projects />} />
             <Route path="projects/:projectId" element={<ProjectDetail />} />
-            <Route
-              path="teams"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="03"
-                  title="Team Workspaces & Collaborators"
-                  description="Cross-functional engineering teams, multi-project member allocations, and roles."
-                  nextStep="Step 3"
-                />
-              }
-            />
+
+            {/* SDLC Module 03: Team Workspaces & Collaborators */}
+            <Route path="teams" element={<Teams />} />
             <Route
               path="requirements"
               element={

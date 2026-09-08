@@ -17,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.neuroforge.security.UserDetailsImpl;
+import org.springframework.security.access.AccessDeniedException;
+
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,6 +33,45 @@ public class TeamService {
     private final TeamMemberRepository teamMemberRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+
+    /**
+     * Enforces pod creation and management permissions:
+     * 1. System Administrator (ROLE_ADMIN): Can manage pods across any project.
+     * 2. Project Manager (ROLE_PROJECT_MANAGER): Can only manage pods in the project they lead.
+     * 3. Developers, QA Engineers, DevOps Engineers: Read-only access.
+     */
+    public void checkProjectTeamOwnership(Project project, UserDetailsImpl currentUser) {
+        if (currentUser == null) {
+            throw new AccessDeniedException("User is not authenticated");
+        }
+        boolean isAdmin = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_ADMIN"));
+        boolean isProjectManager = currentUser.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("ROLE_PROJECT_MANAGER"));
+
+        if (!isAdmin && !isProjectManager) {
+            throw new AccessDeniedException("Access denied: Only Project Managers or Administrators have authority to form or manage engineering pods.");
+        }
+    }
+
+    @Transactional
+    public TeamResponse createTeam(UserDetailsImpl currentUser, Long projectId, TeamCreateRequest request) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
+
+        checkProjectTeamOwnership(project, currentUser);
+
+        Team team = Team.builder()
+                .project(project)
+                .teamName(request.getTeamName().trim())
+                .description(request.getDescription())
+                .build();
+
+        Team saved = teamRepository.save(team);
+        log.info("Team created: id={}, name={}, projectId={}, createdBy={}", 
+                saved.getTeamId(), saved.getTeamName(), projectId, currentUser.getEmail());
+        return TeamResponse.fromEntity(saved, 0);
+    }
 
     @Transactional
     public TeamResponse createTeam(Long projectId, TeamCreateRequest request) {
@@ -71,6 +113,27 @@ public class TeamService {
     }
 
     @Transactional
+    public TeamResponse updateTeam(UserDetailsImpl currentUser, Long teamId, TeamUpdateRequest request) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
+
+        checkProjectTeamOwnership(team.getProject(), currentUser);
+
+        if (request.getTeamName() != null && !request.getTeamName().trim().isEmpty()) {
+            team.setTeamName(request.getTeamName().trim());
+        }
+        if (request.getDescription() != null) {
+            team.setDescription(request.getDescription());
+        }
+
+        Team updated = teamRepository.save(team);
+        int count = teamMemberRepository.findById_TeamId(teamId).size();
+        log.info("Team updated: id={}, name={}, modifiedBy={}", 
+                updated.getTeamId(), updated.getTeamName(), currentUser.getEmail());
+        return TeamResponse.fromEntity(updated, count);
+    }
+
+    @Transactional
     public TeamResponse updateTeam(Long teamId, TeamUpdateRequest request) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
@@ -89,6 +152,20 @@ public class TeamService {
     }
 
     @Transactional
+    public void deleteTeam(UserDetailsImpl currentUser, Long teamId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
+
+        checkProjectTeamOwnership(team.getProject(), currentUser);
+
+        List<TeamMember> members = teamMemberRepository.findById_TeamId(teamId);
+        teamMemberRepository.deleteAll(members);
+
+        teamRepository.delete(team);
+        log.info("Team deleted: id={}, deletedBy={}", teamId, currentUser.getEmail());
+    }
+
+    @Transactional
     public void deleteTeam(Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
@@ -99,6 +176,35 @@ public class TeamService {
 
         teamRepository.delete(team);
         log.info("Team deleted: id={}", teamId);
+    }
+
+    @Transactional
+    public TeamMemberResponse addMemberToTeam(UserDetailsImpl currentUser, Long teamId, TeamMemberAddRequest request) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
+
+        checkProjectTeamOwnership(team.getProject(), currentUser);
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getUserId()));
+
+        if (teamMemberRepository.existsById_TeamIdAndId_UserId(teamId, request.getUserId())) {
+            throw new BadRequestException(String.format("User '%s' is already a member of team '%s'", user.getName(), team.getTeamName()));
+        }
+
+        TeamMemberId memberId = new TeamMemberId(teamId, user.getUserId());
+        TeamMember member = TeamMember.builder()
+                .id(memberId)
+                .team(team)
+                .user(user)
+                .roleInTeam(request.getRoleInTeam().trim())
+                .joinedDate(LocalDate.now())
+                .build();
+
+        TeamMember saved = teamMemberRepository.save(member);
+        log.info("Member added to team: teamId={}, userId={}, role={}, addedBy={}", 
+                teamId, user.getUserId(), request.getRoleInTeam(), currentUser.getEmail());
+        return TeamMemberResponse.fromEntity(saved);
     }
 
     @Transactional
@@ -137,6 +243,22 @@ public class TeamService {
                 .stream()
                 .map(TeamMemberResponse::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void removeMemberFromTeam(UserDetailsImpl currentUser, Long teamId, Long userId) {
+        Team team = teamRepository.findById(teamId)
+                .orElseThrow(() -> new ResourceNotFoundException("Team", "id", teamId));
+
+        checkProjectTeamOwnership(team.getProject(), currentUser);
+
+        TeamMemberId memberId = new TeamMemberId(teamId, userId);
+        if (!teamMemberRepository.existsById(memberId)) {
+            throw new ResourceNotFoundException("TeamMember", "teamId and userId", teamId + ", " + userId);
+        }
+
+        teamMemberRepository.deleteById(memberId);
+        log.info("Member removed from team: teamId={}, userId={}, removedBy={}", teamId, userId, currentUser.getEmail());
     }
 
     @Transactional

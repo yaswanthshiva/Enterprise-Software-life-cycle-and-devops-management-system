@@ -1,71 +1,39 @@
 import React, { useState } from 'react';
-import { useAuth } from '../../context/AuthContext';
-import { projectApi } from '../../api/projectApi';
-import { X, FolderPlus, AlertCircle, ShieldAlert } from 'lucide-react';
+import { teamApi } from '../../api/teamApi';
+import { X, Users2, AlertCircle } from 'lucide-react';
 
-export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
-  const { canCreateProject, user } = useAuth();
-  const [name, setName] = useState('');
+export const CreateTeamModal = ({ isOpen, onClose, projectId, projectName, onTeamCreated }) => {
+  const [teamName, setTeamName] = useState('');
   const [description, setDescription] = useState('');
-  const [status, setStatus] = useState('Planning');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
   if (!isOpen) return null;
 
-  if (!canCreateProject) {
-    return (
-      <div style={{
-        position: 'fixed',
-        inset: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.75)',
-        backdropFilter: 'blur(8px)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 100,
-        padding: '20px',
-      }}>
-        <div className="glass-card animate-fade-in" style={{
-          width: '100%',
-          maxWidth: '480px',
-          padding: '28px',
-          border: '1px solid rgba(255, 51, 68, 0.4)',
-          textAlign: 'center',
-        }}>
-          <ShieldAlert size={40} color="var(--danger)" style={{ marginBottom: '14px' }} />
-          <h3 style={{ marginBottom: '8px' }}>Access Restricted</h3>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', marginBottom: '20px' }}>
-            Only Project Managers and System Administrators hold clearance to initiate new projects.
-            Your current role ({user?.role || 'User'}) has Read-Only portfolio access.
-          </p>
-          <button className="btn btn-secondary" onClick={onClose}>
-            Close
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!projectId) {
+      setError('A valid project must be selected to create a team pod.');
+      return;
+    }
     setError('');
     setLoading(true);
 
     try {
-      const res = await projectApi.createProject({
-        name: name.trim(),
+      const res = await teamApi.createTeam(projectId, {
+        teamName: teamName.trim(),
         description: description.trim(),
-        status,
       });
 
       if (res && res.data) {
-        onProjectCreated(res.data);
+        onTeamCreated(res.data);
+        setTeamName('');
+        setDescription('');
         onClose();
       }
     } catch (err) {
-      console.error('Failed to create project:', err);
-      let msg = err.response?.data?.message || err.message || 'Failed to create project. Please verify fields.';
+      console.error('Failed to create team:', err);
+      let msg = err.response?.data?.message || err.message || 'Failed to create team pod.';
       if (err.response?.data?.errors && Array.isArray(err.response.data.errors) && err.response.data.errors.length > 0) {
         msg = err.response.data.errors.join(' | ');
       }
@@ -79,7 +47,7 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.75)',
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
       backdropFilter: 'blur(8px)',
       display: 'flex',
       alignItems: 'center',
@@ -92,7 +60,7 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         maxWidth: '520px',
         padding: '28px',
         border: '1px solid var(--border-light)',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.8)',
+        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.85)',
       }}>
         {/* Header */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -108,11 +76,13 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               justifyContent: 'center',
               color: 'var(--primary)',
             }}>
-              <FolderPlus size={20} />
+              <Users2 size={20} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Create Project</h2>
-              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>Enterprise SDLC Portfolio</span>
+              <h2 style={{ fontSize: '1.25rem', margin: 0 }}>Form Engineering Pod</h2>
+              <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                Project: <strong style={{ color: 'var(--text-primary)' }}>{projectName || `PRJ-00${projectId}`}</strong>
+              </span>
             </div>
           </div>
 
@@ -141,45 +111,31 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         {/* Form */}
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label" htmlFor="projectName">Project Name *</label>
+            <label className="form-label" htmlFor="teamName">Pod / Team Name *</label>
             <input
-              id="projectName"
+              id="teamName"
               type="text"
               className="form-input"
-              placeholder="e.g. Autonomous Cloud Migration Engine"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              placeholder="e.g. AI Intelligence Guild, Platform Core Pod"
+              value={teamName}
+              onChange={(e) => setTeamName(e.target.value)}
               required
               minLength={2}
-              maxLength={150}
+              maxLength={100}
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label" htmlFor="projectDesc">Executive Summary / Scope</label>
+            <label className="form-label" htmlFor="teamDesc">Charter & Scope Description</label>
             <textarea
-              id="projectDesc"
+              id="teamDesc"
               className="form-textarea"
               rows={4}
-              placeholder="Define project goals, architecture scope, and deliverables..."
+              placeholder="Define functional responsibilities, architectural focus, and sprint domains..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               style={{ resize: 'vertical' }}
             />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label" htmlFor="projectStatus">Initial Lifecycle State</label>
-            <select
-              id="projectStatus"
-              className="form-select"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-            >
-              <option value="Planning">Planning</option>
-              <option value="Active">Active</option>
-              <option value="In Progress">In Progress</option>
-            </select>
           </div>
 
           {/* Actions */}
@@ -195,9 +151,9 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={loading || !name.trim()}
+              disabled={loading || !teamName.trim()}
             >
-              {loading ? 'Creating Project...' : 'Create Project'}
+              {loading ? 'Creating Pod...' : 'Create Team Pod'}
             </button>
           </div>
         </form>
@@ -206,4 +162,4 @@ export const CreateProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   );
 };
 
-export default CreateProjectModal;
+export default CreateTeamModal;

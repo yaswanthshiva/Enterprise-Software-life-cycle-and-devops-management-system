@@ -99,6 +99,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Standardized RBAC role checks
+  const rawRole = (user?.role || '').toUpperCase();
+  const isAdmin = rawRole.includes('ADMIN');
+  const isProjectManager = rawRole.includes('MANAGER') || rawRole.includes('PROJECT_MANAGER');
+  const isBusinessAnalyst = rawRole.includes('ANALYST');
+  const isDeveloper = (rawRole.includes('DEV') && !rawRole.includes('DEVOPS')) || rawRole === 'DEVELOPER';
+  const isTester = rawRole.includes('TEST') || rawRole.includes('QA');
+  const isDevOps = rawRole.includes('DEVOPS');
+
+  // Unified RBAC permission capabilities
+  const canCreateProject = isAdmin || isProjectManager;
+  const canManageProjects = isAdmin || isProjectManager;
+  const canManageTeams = isAdmin || isProjectManager;
+  const canManageUsers = isAdmin || isProjectManager;
+
   const value = {
     user,
     token,
@@ -108,6 +123,18 @@ export const AuthProvider = ({ children }) => {
     register,
     logout,
     refreshUser,
+    // Role flags
+    isAdmin,
+    isProjectManager,
+    isBusinessAnalyst,
+    isDeveloper,
+    isTester,
+    isDevOps,
+    // Permission capabilities
+    canCreateProject,
+    canManageProjects,
+    canManageTeams,
+    canManageUsers,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
