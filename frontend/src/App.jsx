@@ -16,6 +16,7 @@ import UserDirectory from './pages/UserDirectory';
 import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Teams from './pages/Teams';
+import Requirements from './pages/Requirements';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -59,17 +60,8 @@ function App() {
 
             {/* SDLC Module 03: Team Workspaces & Collaborators */}
             <Route path="teams" element={<Teams />} />
-            <Route
-              path="requirements"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="04"
-                  title="Requirements Engineering & User Stories"
-                  description="PRD specifications, user story breakdowns, and acceptance criteria verification."
-                  nextStep="Step 4"
-                />
-              }
-            />
+            {/* SDLC Module 04: Requirements Engineering & User Stories */}
+            <Route path="requirements" element={<Requirements />} />
             <Route
               path="ai/requirements"
               element={

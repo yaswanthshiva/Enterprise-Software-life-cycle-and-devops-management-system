@@ -113,6 +113,8 @@ export const AuthProvider = ({ children }) => {
   const canManageProjects = isAdmin || isProjectManager;
   const canManageTeams = isAdmin || isProjectManager;
   const canManageUsers = isAdmin || isProjectManager;
+  const canManageRequirements = isAdmin || isProjectManager || isBusinessAnalyst;
+  const canUpdateStoryStatus = isAdmin || isProjectManager || isBusinessAnalyst || isDeveloper;
 
   const value = {
     user,
@@ -135,6 +137,8 @@ export const AuthProvider = ({ children }) => {
     canManageProjects,
     canManageTeams,
     canManageUsers,
+    canManageRequirements,
+    canUpdateStoryStatus,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
