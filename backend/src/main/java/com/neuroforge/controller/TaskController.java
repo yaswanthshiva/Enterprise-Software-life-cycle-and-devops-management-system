@@ -25,7 +25,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping("/tasks")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_BUSINESS_ANALYST')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_BUSINESS_ANALYST', 'ROLE_DEVELOPER')")
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(@Valid @RequestBody TaskCreateRequest request) {
         TaskResponse response = taskService.createTask(request);
         return new ResponseEntity<>(

@@ -18,6 +18,7 @@ import ProjectDetail from './pages/ProjectDetail';
 import Teams from './pages/Teams';
 import Requirements from './pages/Requirements';
 import AiPrdStudio from './pages/AiPrdStudio';
+import Sprints from './pages/Sprints';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -65,17 +66,8 @@ function App() {
             <Route path="requirements" element={<Requirements />} />
             {/* SDLC Module 05: AI PRD Studio with Gemini */}
             <Route path="ai/requirements" element={<AiPrdStudio />} />
-            <Route
-              path="sprints"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="06"
-                  title="Agile Sprints & Kanban Board"
-                  description="Sprint milestones, velocity tracking, and interactive drag-and-drop task boards."
-                  nextStep="Step 6"
-                />
-              }
-            />
+            {/* SDLC Module 06: Agile Sprints & Interactive Kanban Board */}
+            <Route path="sprints" element={<Sprints />} />
             <Route
               path="ai/code"
               element={

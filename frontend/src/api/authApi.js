@@ -26,6 +26,12 @@ export const authApi = {
     return response.data;
   },
 
+  // Get active platform users (open to all authenticated roles)
+  getActiveUsers: async () => {
+    const response = await api.get('/users/active');
+    return response.data;
+  },
+
   // Health check endpoint
   checkHealth: async () => {
     const response = await api.get('/health');
