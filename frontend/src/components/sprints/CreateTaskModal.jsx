@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { taskApi } from '../../api/taskApi';
 import { requirementApi } from '../../api/requirementApi';
 import { authApi } from '../../api/authApi';
+import { teamApi } from '../../api/teamApi';
+import { useAuth } from '../../context/AuthContext';
 import {
   X,
   CheckSquare,
@@ -21,6 +23,7 @@ export const CreateTaskModal = ({
   sprints = [],
   onTaskCreated
 }) => {
+  const { user } = useAuth();
   const [sprintId, setSprintId] = useState(currentSprintId || '');
   const [storyId, setStoryId] = useState('');
   const [assignedToUserId, setAssignedToUserId] = useState('');
@@ -62,10 +65,43 @@ export const CreateTaskModal = ({
       if (storyRes && storyRes.data) {
         setStories(storyRes.data);
       }
+
       if (userRes && userRes.data) {
-        setUsers(userRes.data);
-        if (!assignedToUserId && userRes.data.length > 0) {
-          setAssignedToUserId(String(userRes.data[0].userId));
+        const allActive = userRes.data;
+        const currentUserId = user ? user.userId : null;
+
+        const isEngineeringRole = (roleStr) => {
+          const r = (roleStr || '').toUpperCase();
+          return (
+            r.includes('DEV') || // Developer, DevOps
+            r.includes('TEST') || // Tester, QA
+            r.includes('QA') ||
+            r.includes('ENGINEER')
+          );
+        };
+
+        // Filter assignees to only current user and engineering teammates (exclude Admin, PM, BA)
+        const eligibleUsers = allActive.filter((u) => {
+          if (currentUserId && u.userId === currentUserId) return true;
+          const r = (u.role || '').toUpperCase();
+          if (
+            (r.includes('ADMIN') && !r.includes('SYSADMIN')) ||
+            r.includes('PROJECT_MANAGER') ||
+            r.includes('MANAGER') ||
+            r.includes('ANALYST')
+          ) {
+            return false;
+          }
+          return isEngineeringRole(u.role);
+        });
+
+        setUsers(eligibleUsers);
+
+        // Default to assigning to myself (current user)
+        if (currentUserId && eligibleUsers.some((u) => u.userId === currentUserId)) {
+          setAssignedToUserId(String(currentUserId));
+        } else if (eligibleUsers.length > 0) {
+          setAssignedToUserId(String(eligibleUsers[0].userId));
         }
       }
     } catch (err) {
@@ -283,11 +319,25 @@ export const CreateTaskModal = ({
                 onChange={(e) => setAssignedToUserId(e.target.value)}
                 disabled={loading || loadingDependencies}
               >
-                {users.map((u) => (
-                  <option key={u.userId} value={u.userId}>
-                    {u.name} ({u.role}) - {u.email}
-                  </option>
-                ))}
+                {/* 1. Self-Assignment */}
+                {user && (
+                  <optgroup label="⭐️ Self-Assignment (Claim Task)">
+                    <option value={user.userId}>
+                      Assign to Myself ({user.fullName || user.name || 'Developer'})
+                    </option>
+                  </optgroup>
+                )}
+
+                {/* 2. Engineering Pod Teammates */}
+                <optgroup label="👥 Pod Teammates (Developers, QA, DevOps)">
+                  {users
+                    .filter((u) => !user || u.userId !== user.userId)
+                    .map((u) => (
+                      <option key={u.userId} value={u.userId}>
+                        {u.name} ({u.role || 'Engineer'}) — {u.email}
+                      </option>
+                    ))}
+                </optgroup>
               </select>
             </div>
 
