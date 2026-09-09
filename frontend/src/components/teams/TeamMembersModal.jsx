@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   RefreshCw,
   Shield,
-  Briefcase
+  Briefcase,
+  Lock
 } from 'lucide-react';
 
 export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCountChanged }) => {
@@ -86,6 +87,10 @@ export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCou
 
   const handleAddMember = async (e) => {
     e.preventDefault();
+    if (!canManage) {
+      setError('Access Restricted: Only Project Managers and Admins can allocate engineers to pods.');
+      return;
+    }
     if (!selectedUserId) {
       setError('Please select an engineer to allocate to this pod.');
       return;
@@ -122,6 +127,10 @@ export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCou
   };
 
   const handleRemoveMember = async (userId, memberName) => {
+    if (!canManage) {
+      setError('Access Restricted: Only Project Managers and Admins can remove engineers from pods.');
+      return;
+    }
     if (!window.confirm(`Remove ${memberName} from this team pod?`)) return;
     setError('');
 
@@ -195,9 +204,28 @@ export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCou
               <Users2 size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.3rem', margin: 0 }}>
-                {team.teamName} Roster
-              </h2>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '1.3rem', margin: 0 }}>
+                  {team.teamName} Roster
+                </h2>
+                {!canManage && (
+                  <span
+                    className="badge"
+                    style={{
+                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border-subtle)',
+                      fontSize: '0.72rem',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      padding: '2px 8px',
+                    }}
+                  >
+                    <Lock size={11} /> Read-Only Roster
+                  </span>
+                )}
+              </div>
               <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
                 Pod TM-00{team.teamId} • {members.length} Active Collaborators
               </span>
