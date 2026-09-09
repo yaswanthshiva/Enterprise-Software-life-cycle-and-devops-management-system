@@ -632,6 +632,25 @@ export const Requirements = () => {
                               <option value="Implemented">Implemented</option>
                             </select>
 
+                            <Link
+                              to={`/workspace/ai/requirements?projectId=${selectedProjectId}&requirementId=${req.requirementId}`}
+                              className="btn btn-secondary btn-sm"
+                              title="Analyze & synthesize user stories with Gemini AI"
+                              style={{
+                                padding: '4px 10px',
+                                height: '28px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                color: 'var(--primary)',
+                                borderColor: 'var(--border-focus)',
+                                backgroundColor: 'rgba(255, 107, 0, 0.08)',
+                              }}
+                            >
+                              <Sparkles size={13} color="var(--primary)" />
+                              <span>AI Studio</span>
+                            </Link>
+
                             <button
                               className="btn btn-secondary btn-sm"
                               onClick={() => {
@@ -698,17 +717,35 @@ export const Requirements = () => {
                             </span>
 
                             {canManageRequirements && (
-                              <button
-                                className="btn btn-secondary btn-sm"
-                                onClick={() => {
-                                  setTargetReqIdForStory(req.requirementId);
-                                  setIsCreateStoryOpen(true);
-                                }}
-                                style={{ padding: '3px 10px', fontSize: '0.75rem', gap: '4px' }}
-                              >
-                                <BookmarkPlus size={13} />
-                                Add Story to REQ-00{req.requirementId}
-                              </button>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <Link
+                                  to={`/workspace/ai/requirements?projectId=${selectedProjectId}&requirementId=${req.requirementId}`}
+                                  className="btn btn-secondary btn-sm"
+                                  style={{
+                                    padding: '3px 10px',
+                                    fontSize: '0.75rem',
+                                    gap: '4px',
+                                    color: 'var(--primary)',
+                                    borderColor: 'var(--border-focus)',
+                                    backgroundColor: 'rgba(255, 107, 0, 0.08)',
+                                  }}
+                                >
+                                  <Sparkles size={12} color="var(--primary)" />
+                                  AI Generate Stories
+                                </Link>
+
+                                <button
+                                  className="btn btn-secondary btn-sm"
+                                  onClick={() => {
+                                    setTargetReqIdForStory(req.requirementId);
+                                    setIsCreateStoryOpen(true);
+                                  }}
+                                  style={{ padding: '3px 10px', fontSize: '0.75rem', gap: '4px' }}
+                                >
+                                  <BookmarkPlus size={12} />
+                                  Manual Story
+                                </button>
+                              </div>
                             )}
                           </div>
 

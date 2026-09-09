@@ -17,6 +17,7 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Teams from './pages/Teams';
 import Requirements from './pages/Requirements';
+import AiPrdStudio from './pages/AiPrdStudio';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -62,17 +63,8 @@ function App() {
             <Route path="teams" element={<Teams />} />
             {/* SDLC Module 04: Requirements Engineering & User Stories */}
             <Route path="requirements" element={<Requirements />} />
-            <Route
-              path="ai/requirements"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="05"
-                  title="AI Requirements Studio"
-                  description="Autonomous Gemini AI prompt-to-PRD generator and interactive acceptance review."
-                  nextStep="Step 5"
-                />
-              }
-            />
+            {/* SDLC Module 05: AI PRD Studio with Gemini */}
+            <Route path="ai/requirements" element={<AiPrdStudio />} />
             <Route
               path="sprints"
               element={
