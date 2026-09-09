@@ -41,11 +41,8 @@ export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCou
     setLoading(true);
     setError('');
     try {
-      const [membersRes, usersRes] = await Promise.all([
-        teamApi.getTeamMembers(team.teamId),
-        authApi.getAllUsers()
-      ]);
-
+      // 1. Fetch team roster (accessible to all authenticated roles including Developers)
+      const membersRes = await teamApi.getTeamMembers(team.teamId);
       if (membersRes && membersRes.data) {
         setMembers(membersRes.data);
         if (onMemberCountChanged) {
@@ -53,12 +50,20 @@ export const TeamMembersModal = ({ isOpen, onClose, team, canManage, onMemberCou
         }
       }
 
-      if (usersRes && usersRes.data) {
-        setAvailableUsers(usersRes.data);
+      // 2. Fetch user directory ONLY if current user has management permissions (Admin / PM)
+      if (canManage) {
+        try {
+          const usersRes = await authApi.getAllUsers();
+          if (usersRes && usersRes.data) {
+            setAvailableUsers(usersRes.data);
+          }
+        } catch (uErr) {
+          console.warn('Could not load user directory for allocation:', uErr);
+        }
       }
     } catch (err) {
       console.error('Failed to load team roster:', err);
-      setError('Unable to load team members or user directory.');
+      setError('Unable to load team members.');
     } finally {
       setLoading(false);
     }
