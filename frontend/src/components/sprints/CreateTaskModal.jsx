@@ -36,6 +36,7 @@ export const CreateTaskModal = ({
   // Dropdown lists
   const [stories, setStories] = useState([]);
   const [users, setUsers] = useState([]);
+  const [isProjectScoped, setIsProjectScoped] = useState(false);
   const [loadingDependencies, setLoadingDependencies] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,55 +58,106 @@ export const CreateTaskModal = ({
   const loadStoriesAndUsers = async () => {
     setLoadingDependencies(true);
     try {
-      const [storyRes, userRes] = await Promise.all([
+      // 1. Fetch project stories and project engineering teams in parallel
+      const [storyRes, teamsRes] = await Promise.all([
         projectId ? requirementApi.getProductBacklog(projectId) : Promise.resolve({ data: [] }),
-        authApi.getActiveUsers()
+        projectId ? teamApi.getTeamsByProject(projectId) : Promise.resolve({ data: [] })
       ]);
 
       if (storyRes && storyRes.data) {
         setStories(storyRes.data);
       }
 
-      if (userRes && userRes.data) {
-        const allActive = userRes.data;
-        const currentUserId = user ? user.userId : null;
+      // 2. Fetch allocated pod members across all teams belonging to this project
+      const projectMembersMap = new Map();
+      if (teamsRes && teamsRes.data && teamsRes.data.length > 0) {
+        const memberPromises = teamsRes.data.map((t) => teamApi.getTeamMembers(t.teamId));
+        const membersResults = await Promise.allSettled(memberPromises);
 
-        const isEngineeringRole = (roleStr) => {
-          const r = (roleStr || '').toUpperCase();
-          return (
-            r.includes('DEV') || // Developer, DevOps
-            r.includes('TEST') || // Tester, QA
-            r.includes('QA') ||
-            r.includes('ENGINEER')
-          );
-        };
-
-        // Filter assignees to only current user and engineering teammates (exclude Admin, PM, BA)
-        const eligibleUsers = allActive.filter((u) => {
-          if (currentUserId && u.userId === currentUserId) return true;
-          const r = (u.role || '').toUpperCase();
-          if (
-            (r.includes('ADMIN') && !r.includes('SYSADMIN')) ||
-            r.includes('PROJECT_MANAGER') ||
-            r.includes('MANAGER') ||
-            r.includes('ANALYST')
-          ) {
-            return false;
+        membersResults.forEach((result) => {
+          if (result.status === 'fulfilled' && result.value?.data) {
+            result.value.data.forEach((m) => {
+              if (!projectMembersMap.has(m.userId)) {
+                projectMembersMap.set(m.userId, {
+                  userId: m.userId,
+                  name: m.userName,
+                  email: m.userEmail,
+                  role: m.roleInTeam || m.platformRole,
+                  podName: m.teamName,
+                });
+              }
+            });
           }
-          return isEngineeringRole(u.role);
         });
+      }
 
-        setUsers(eligibleUsers);
+      let eligibleUsers = Array.from(projectMembersMap.values());
+      const hasAllocatedPodMembers = eligibleUsers.length > 0;
+      setIsProjectScoped(hasAllocatedPodMembers);
 
-        // Default to assigning to myself (current user)
-        if (currentUserId && eligibleUsers.some((u) => u.userId === currentUserId)) {
-          setAssignedToUserId(String(currentUserId));
-        } else if (eligibleUsers.length > 0) {
-          setAssignedToUserId(String(eligibleUsers[0].userId));
+      // 3. If no engineers have been allocated to this project's pods yet, fallback to active engineering users
+      if (!hasAllocatedPodMembers) {
+        try {
+          const userRes = await authApi.getActiveUsers();
+          if (userRes && userRes.data) {
+            const isEngineeringRole = (roleStr) => {
+              const r = (roleStr || '').toUpperCase();
+              return (
+                r.includes('DEV') || // Developer, DevOps
+                r.includes('TEST') || // Tester, QA
+                r.includes('QA') ||
+                r.includes('ENGINEER')
+              );
+            };
+
+            eligibleUsers = userRes.data
+              .filter((u) => {
+                const r = (u.role || '').toUpperCase();
+                if (
+                  (r.includes('ADMIN') && !r.includes('SYSADMIN')) ||
+                  r.includes('PROJECT_MANAGER') ||
+                  r.includes('MANAGER') ||
+                  r.includes('ANALYST')
+                ) {
+                  return false;
+                }
+                return isEngineeringRole(u.role);
+              })
+              .map((u) => ({
+                userId: u.userId,
+                name: u.name,
+                email: u.email,
+                role: u.role || 'Engineer',
+                podName: '',
+              }));
+          }
+        } catch (uErr) {
+          console.warn('Fallback active users fetch error:', uErr);
         }
       }
+
+      // Always ensure the current logged-in user can self-assign
+      const currentUserId = user ? user.userId : null;
+      if (currentUserId && !eligibleUsers.some((u) => u.userId === currentUserId)) {
+        eligibleUsers.unshift({
+          userId: user.userId,
+          name: user.fullName || user.name || 'Current User',
+          email: user.email,
+          role: user.role || 'Developer',
+          podName: 'Myself',
+        });
+      }
+
+      setUsers(eligibleUsers);
+
+      // Default to assigning to myself (current user)
+      if (currentUserId) {
+        setAssignedToUserId(String(currentUserId));
+      } else if (eligibleUsers.length > 0) {
+        setAssignedToUserId(String(eligibleUsers[0].userId));
+      }
     } catch (err) {
-      console.error('Failed to load stories or users for task modal:', err);
+      console.error('Failed to load stories or pod members for task modal:', err);
     } finally {
       setLoadingDependencies(false);
     }
@@ -328,13 +380,19 @@ export const CreateTaskModal = ({
                   </optgroup>
                 )}
 
-                {/* 2. Engineering Pod Teammates */}
-                <optgroup label="👥 Pod Teammates (Developers, QA, DevOps)">
+                {/* 2. Project Pod Members */}
+                <optgroup
+                  label={
+                    isProjectScoped
+                      ? "👥 Allocated Project Pod Members"
+                      : "👥 Engineering Teammates (No project pod assigned)"
+                  }
+                >
                   {users
                     .filter((u) => !user || u.userId !== user.userId)
                     .map((u) => (
                       <option key={u.userId} value={u.userId}>
-                        {u.name} ({u.role || 'Engineer'}) — {u.email}
+                        {u.name} ({u.role || 'Engineer'}) {u.podName ? `— Pod: ${u.podName}` : `— ${u.email}`}
                       </option>
                     ))}
                 </optgroup>
