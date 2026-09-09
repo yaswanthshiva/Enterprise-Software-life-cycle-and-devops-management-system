@@ -25,7 +25,7 @@ public class TaskController {
     private final TaskService taskService;
 
     @PostMapping("/tasks")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_BUSINESS_ANALYST', 'ROLE_DEVELOPER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_BUSINESS_ANALYST', 'ROLE_DEVELOPER', 'ROLE_TESTER', 'ROLE_DEVOPS_ENGINEER')")
     public ResponseEntity<ApiResponse<TaskResponse>> createTask(@Valid @RequestBody TaskCreateRequest request) {
         TaskResponse response = taskService.createTask(request);
         return new ResponseEntity<>(
@@ -63,7 +63,7 @@ public class TaskController {
     }
 
     @PutMapping("/tasks/{taskId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_DEVELOPER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_DEVELOPER', 'ROLE_TESTER', 'ROLE_DEVOPS_ENGINEER')")
     public ResponseEntity<ApiResponse<TaskResponse>> updateTask(
             @PathVariable Long taskId,
             @Valid @RequestBody TaskUpdateRequest request) {
