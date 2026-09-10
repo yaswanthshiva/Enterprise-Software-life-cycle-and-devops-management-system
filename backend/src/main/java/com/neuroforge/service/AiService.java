@@ -65,7 +65,13 @@ public class AiService {
     private String invokeGeminiEndpoint(String modelName, String systemInstruction, String promptContext) {
         String url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + geminiApiKey;
 
-        RestClient restClient = RestClient.builder().build();
+        org.springframework.http.client.SimpleClientHttpRequestFactory requestFactory = new org.springframework.http.client.SimpleClientHttpRequestFactory();
+        requestFactory.setConnectTimeout(java.time.Duration.ofSeconds(15));
+        requestFactory.setReadTimeout(java.time.Duration.ofSeconds(60));
+
+        RestClient restClient = RestClient.builder()
+                .requestFactory(requestFactory)
+                .build();
 
         Map<String, Object> requestBody = Map.of(
                 "contents", List.of(
@@ -75,14 +81,22 @@ public class AiService {
                 )
         );
 
-        String responseBody = restClient.post()
-                .uri(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(requestBody)
-                .retrieve()
-                .body(String.class);
+        try {
+            String responseBody = restClient.post()
+                    .uri(url)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(requestBody)
+                    .retrieve()
+                    .body(String.class);
 
-        return parseGeminiResponse(responseBody);
+            return parseGeminiResponse(responseBody);
+        } catch (org.springframework.web.client.RestClientResponseException rce) {
+            log.error("Google Gemini API error (status: {}): {}", rce.getStatusCode(), rce.getResponseBodyAsString());
+            throw rce;
+        } catch (Exception ex) {
+            log.error("Google Gemini connection error: {}", ex.getMessage());
+            throw ex;
+        }
     }
 
     private String parseGeminiResponse(String jsonResponse) {
@@ -92,7 +106,15 @@ public class AiService {
             if (candidates.isArray() && !candidates.isEmpty()) {
                 JsonNode parts = candidates.get(0).path("content").path("parts");
                 if (parts.isArray() && !parts.isEmpty()) {
-                    return parts.get(0).path("text").asText();
+                    StringBuilder textCollector = new StringBuilder();
+                    for (JsonNode part : parts) {
+                        if (part.has("text") && !part.path("text").asText().isBlank()) {
+                            textCollector.append(part.path("text").asText());
+                        }
+                    }
+                    if (textCollector.length() > 0) {
+                        return textCollector.toString();
+                    }
                 }
             }
         } catch (Exception e) {
