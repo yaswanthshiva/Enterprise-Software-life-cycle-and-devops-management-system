@@ -20,6 +20,7 @@ import Requirements from './pages/Requirements';
 import AiPrdStudio from './pages/AiPrdStudio';
 import Sprints from './pages/Sprints';
 import AiCodeStudio from './pages/AiCodeStudio';
+import QualityAssurance from './pages/QualityAssurance';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -71,17 +72,8 @@ function App() {
             <Route path="sprints" element={<Sprints />} />
             {/* SDLC Module 07: AI Code Intelligence Studio with Gemini */}
             <Route path="ai/code" element={<AiCodeStudio />} />
-            <Route
-              path="qa"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="08"
-                  title="Quality Assurance & Issue Tracking"
-                  description="Test case test suites, bug triage severity tracking, and QA health metrics."
-                  nextStep="Step 8"
-                />
-              }
-            />
+            {/* SDLC Module 08: Quality Assurance & Defect Tracking */}
+            <Route path="qa" element={<QualityAssurance />} />
             <Route
               path="releases"
               element={
