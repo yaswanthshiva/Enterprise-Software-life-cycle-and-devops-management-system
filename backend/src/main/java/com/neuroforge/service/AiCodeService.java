@@ -28,7 +28,7 @@ public class AiCodeService {
     private final TaskRepository taskRepository;
     private final AiService aiService;
 
-    @Value("${neuroforge.ai.gemini.model:gemini-1.5-flash}")
+    @Value("${neuroforge.ai.gemini.model:gemini-3.6-flash}")
     private String configuredModel;
 
     @Transactional

@@ -26,7 +26,7 @@ public class AiService {
     @Value("${neuroforge.ai.gemini.api-key:}")
     private String geminiApiKey;
 
-    @Value("${neuroforge.ai.gemini.model:gemini-1.5-flash}")
+    @Value("${neuroforge.ai.gemini.model:gemini-3.6-flash}")
     private String geminiModel;
 
     /**
@@ -50,7 +50,20 @@ public class AiService {
     }
 
     private String callGeminiApi(String systemInstruction, String promptContext) {
-        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + geminiModel + ":generateContent?key=" + geminiApiKey;
+        String activeModel = (geminiModel != null && !geminiModel.trim().isEmpty()) ? geminiModel.trim() : "gemini-3.6-flash";
+        try {
+            return invokeGeminiEndpoint(activeModel, systemInstruction, promptContext);
+        } catch (Exception ex) {
+            log.warn("Gemini invocation for model '{}' failed ({}). Attempting fallback to gemini-3.6-flash.", activeModel, ex.getMessage());
+            if (!"gemini-3.6-flash".equalsIgnoreCase(activeModel)) {
+                return invokeGeminiEndpoint("gemini-3.6-flash", systemInstruction, promptContext);
+            }
+            throw ex;
+        }
+    }
+
+    private String invokeGeminiEndpoint(String modelName, String systemInstruction, String promptContext) {
+        String url = "https://generativelanguage.googleapis.com/v1beta/models/" + modelName + ":generateContent?key=" + geminiApiKey;
 
         RestClient restClient = RestClient.builder().build();
 
