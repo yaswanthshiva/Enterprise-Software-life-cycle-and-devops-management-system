@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { taskApi } from '../../api/taskApi';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -14,7 +15,8 @@ import {
   Clock,
   ArrowRight,
   ArrowLeft,
-  Check
+  Check,
+  Sparkles
 } from 'lucide-react';
 
 export const TaskDetailModal = ({
@@ -386,13 +388,24 @@ export const TaskDetailModal = ({
             )}
           </div>
 
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onClose}
-          >
-            Close
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Link
+              to={`/workspace/ai/code?projectId=${task.projectId || ''}&sprintId=${task.sprintId || ''}&taskId=${task.taskId}`}
+              className="btn btn-primary btn-sm"
+              onClick={onClose}
+              style={{ fontSize: '0.8rem' }}
+            >
+              <Sparkles size={14} /> AI Code Studio
+            </Link>
+
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onClose}
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>

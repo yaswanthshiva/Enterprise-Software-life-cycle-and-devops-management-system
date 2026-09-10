@@ -19,6 +19,7 @@ import Teams from './pages/Teams';
 import Requirements from './pages/Requirements';
 import AiPrdStudio from './pages/AiPrdStudio';
 import Sprints from './pages/Sprints';
+import AiCodeStudio from './pages/AiCodeStudio';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -68,17 +69,8 @@ function App() {
             <Route path="ai/requirements" element={<AiPrdStudio />} />
             {/* SDLC Module 06: Agile Sprints & Interactive Kanban Board */}
             <Route path="sprints" element={<Sprints />} />
-            <Route
-              path="ai/code"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="07"
-                  title="AI Code Intelligence Studio"
-                  description="Autonomous code synthesis, syntax code review, and automated JUnit test generation."
-                  nextStep="Step 7"
-                />
-              }
-            />
+            {/* SDLC Module 07: AI Code Intelligence Studio with Gemini */}
+            <Route path="ai/code" element={<AiCodeStudio />} />
             <Route
               path="qa"
               element={
