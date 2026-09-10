@@ -291,7 +291,7 @@ export const QualityAssurance = () => {
   // TEST CASE ACTIONS & HANDLERS
   // ----------------------------------------------------
   const handleOpenCreateTc = () => {
-    if (!canManageTestCases) return;
+    setError('');
     setIsCreateTcOpen(true);
   };
 
@@ -1538,13 +1538,19 @@ export const QualityAssurance = () => {
             <form onSubmit={handleCreateTestCaseSubmit} className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label className="form-label">Linked Engineering Task *</label>
-                <select name="taskId" className="form-select" required defaultValue={projectTasks[0]?.taskId || ''}>
-                  {projectTasks.map((t) => (
-                    <option key={t.taskId} value={t.taskId}>
-                      TASK-00{t.taskId}: {t.title}
-                    </option>
-                  ))}
-                </select>
+                {projectTasks.length === 0 ? (
+                  <div style={{ padding: '8px 12px', backgroundColor: 'rgba(255, 107, 0, 0.1)', border: '1px solid var(--primary)', borderRadius: '6px', fontSize: '0.8rem', color: 'var(--primary)' }}>
+                    No tasks found in this project's active sprints. You can create tasks under Sprints &amp; Kanban.
+                  </div>
+                ) : (
+                  <select name="taskId" className="form-select" required defaultValue={projectTasks[0]?.taskId || ''}>
+                    {projectTasks.map((t) => (
+                      <option key={t.taskId} value={t.taskId}>
+                        TASK-00{t.taskId}: {t.title}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
 
               <div>
@@ -1593,7 +1599,7 @@ export const QualityAssurance = () => {
                 <button type="button" className="btn btn-secondary" onClick={() => setIsCreateTcOpen(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="btn btn-primary" disabled={actionLoading}>
+                <button type="submit" className="btn btn-primary" disabled={actionLoading || projectTasks.length === 0}>
                   {actionLoading ? 'Authoring...' : 'Create Test Case'}
                 </button>
               </div>
