@@ -78,6 +78,12 @@ public class AiService {
                         Map.of("parts", List.of(
                                 Map.of("text", (systemInstruction != null ? systemInstruction + "\n\n" : "") + promptContext)
                         ))
+                ),
+                "safetySettings", List.of(
+                        Map.of("category", "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold", "BLOCK_ONLY_HIGH"),
+                        Map.of("category", "HARM_CATEGORY_HATE_SPEECH", "threshold", "BLOCK_ONLY_HIGH"),
+                        Map.of("category", "HARM_CATEGORY_HARASSMENT", "threshold", "BLOCK_ONLY_HIGH"),
+                        Map.of("category", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold", "BLOCK_ONLY_HIGH")
                 )
         );
 
@@ -449,21 +455,20 @@ public class AiService {
     }
 
     /**
-     * Analyzes code snippet for OWASP security vulnerabilities, bugs, and performance bottlenecks.
+     * Analyzes code snippet for software quality, defensive engineering, and performance bottlenecks.
      */
     public String reviewCodeSnippet(String sourceCode, String language, String reviewFocus) {
-        String systemInstruction = "You are NeuroForge AI, a Lead Security Auditor & Static Code Analysis Expert. "
-                + "Perform an in-depth security, code quality, and performance code review on the provided " + language + " code.";
+        String systemInstruction = "You are NeuroForge AI, an automated enterprise code quality linter and software architectural assistant. "
+                + "Help developers write maintainable, clean, and defensively engineered " + language + " code following industry standards and best practices.";
 
-        String prompt = "REVIEW FOCUS: " + (reviewFocus != null ? reviewFocus : "OWASP Top 10, Performance, Clean Code & Error Handling") + "\n"
+        String prompt = "REVIEW FOCUS: " + (reviewFocus != null ? reviewFocus : "Clean Code, Defensive Engineering, Performance & Robustness") + "\n"
                 + "LANGUAGE: " + language + "\n"
-                + "SOURCE CODE TO REVIEW:\n```" + language.toLowerCase() + "\n" + sourceCode + "\n```\n"
+                + "SOURCE CODE TO ANALYZE:\n```" + language.toLowerCase() + "\n" + sourceCode + "\n```\n"
                 + "\nPlease provide:\n"
-                + "1. Overall Code Health Score (1 - 100)\n"
-                + "2. Critical Security Findings (SQLi, XSS, CSRF, Insecure Deserialization, Secret Leakage)\n"
-                + "3. Performance & Memory Bottlenecks (Time complexity, resource cleanup, connection leaks)\n"
-                + "4. Code Smells & SOLID Violations\n"
-                + "5. Corrected, Hardened Implementation (full refactored code)";
+                + "1. Code Quality & Architectural Assessment (Severity, Category, Best Practice Observations)\n"
+                + "2. Defensive Engineering & Reliability Recommendations (e.g. input sanitization, parameterized queries, resource handling)\n"
+                + "3. Performance & Memory Considerations\n"
+                + "4. Production-Ready, Hardened Implementation (Full clean code refactored according to best practices)";
 
         String aiResult = executeAiPrompt(systemInstruction, prompt);
         if (aiResult != null && !aiResult.trim().isEmpty()) {
