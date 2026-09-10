@@ -25,7 +25,7 @@ public class TestCaseController {
     private final TestCaseService testCaseService;
 
     @PostMapping("/test-cases")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_TESTER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_TESTER', 'ROLE_DEVELOPER')")
     public ResponseEntity<ApiResponse<TestCaseResponse>> createTestCase(@Valid @RequestBody TestCaseCreateRequest request) {
         TestCaseResponse response = testCaseService.createTestCase(request);
         return new ResponseEntity<>(
@@ -59,7 +59,7 @@ public class TestCaseController {
     }
 
     @PutMapping("/test-cases/{testCaseId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_TESTER')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_PROJECT_MANAGER', 'ROLE_TESTER', 'ROLE_DEVELOPER')")
     public ResponseEntity<ApiResponse<TestCaseResponse>> updateTestCase(
             @PathVariable Long testCaseId,
             @Valid @RequestBody TestCaseUpdateRequest request) {

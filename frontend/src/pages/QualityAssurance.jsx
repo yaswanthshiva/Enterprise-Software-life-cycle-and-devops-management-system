@@ -38,19 +38,18 @@ import {
 } from 'lucide-react';
 
 export const QualityAssurance = () => {
-  const { user } = useAuth();
+  const {
+    user,
+    isAdmin,
+    isProjectManager,
+    isTester,
+    isDeveloper,
+    isDevOps,
+    isBusinessAnalyst,
+  } = useAuth();
 
-  // Role Permissions
-  const role = user?.role || '';
-  const isAdmin = role === 'ADMIN';
-  const isProjectManager = role === 'PROJECT_MANAGER';
-  const isTester = role === 'TESTER';
-  const isDeveloper = role === 'DEVELOPER';
-  const isDevOps = role === 'DEVOPS_ENGINEER';
-  const isBusinessAnalyst = role === 'BUSINESS_ANALYST';
-
-  // Permission Flags
-  const canManageTestCases = isAdmin || isProjectManager || isTester;
+  // Permission Flags (Admins, PMs, Testers, and Developers have authoring clearance)
+  const canManageTestCases = isAdmin || isProjectManager || isTester || isDeveloper;
   const canExecuteTestCases = isAdmin || isProjectManager || isTester || isDeveloper;
   const canCreateIssues = isAdmin || isProjectManager || isTester || isDeveloper || isDevOps || isBusinessAnalyst;
   const canUpdateIssues = isAdmin || isProjectManager || isTester || isDeveloper;
@@ -984,22 +983,35 @@ export const QualityAssurance = () => {
               </div>
             </div>
 
-            {/* Test Type Filter */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Type:</label>
-              <select
-                className="form-select"
-                style={{ width: 'auto', fontSize: '0.78rem', height: '32px', padding: '4px 10px' }}
-                value={tcTypeFilter}
-                onChange={(e) => setTcTypeFilter(e.target.value)}
-              >
-                <option value="ALL">All Types</option>
-                <option value="Functional">Functional</option>
-                <option value="Regression">Regression</option>
-                <option value="Integration">Integration</option>
-                <option value="Security">Security</option>
-                <option value="Performance">Performance</option>
-              </select>
+            {/* Test Type Filter & New Test Case Button */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Type:</label>
+                <select
+                  className="form-select"
+                  style={{ width: 'auto', fontSize: '0.78rem', height: '32px', padding: '4px 10px' }}
+                  value={tcTypeFilter}
+                  onChange={(e) => setTcTypeFilter(e.target.value)}
+                >
+                  <option value="ALL">All Types</option>
+                  <option value="Functional">Functional</option>
+                  <option value="Regression">Regression</option>
+                  <option value="Integration">Integration</option>
+                  <option value="Security">Security</option>
+                  <option value="Performance">Performance</option>
+                </select>
+              </div>
+
+              {canManageTestCases && (
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={handleOpenCreateTc}
+                  style={{ height: '32px', padding: '0 12px' }}
+                >
+                  <Plus size={14} />
+                  <span>New Test Case</span>
+                </button>
+              )}
             </div>
           </div>
 
