@@ -21,6 +21,7 @@ import AiPrdStudio from './pages/AiPrdStudio';
 import Sprints from './pages/Sprints';
 import AiCodeStudio from './pages/AiCodeStudio';
 import QualityAssurance from './pages/QualityAssurance';
+import Releases from './pages/Releases';
 import ModulePlaceholder from './pages/ModulePlaceholder';
 
 function App() {
@@ -74,17 +75,8 @@ function App() {
             <Route path="ai/code" element={<AiCodeStudio />} />
             {/* SDLC Module 08: Quality Assurance & Defect Tracking */}
             <Route path="qa" element={<QualityAssurance />} />
-            <Route
-              path="releases"
-              element={
-                <ModulePlaceholder
-                  moduleNumber="09"
-                  title="Release Command Center & CI/CD"
-                  description="Semantic release versioning, staging/production deployments, and deployment audit logs."
-                  nextStep="Step 9"
-                />
-              }
-            />
+            {/* SDLC Module 09: Release Command Center & CI/CD Deployment Orchestrator */}
+            <Route path="releases" element={<Releases />} />
           </Route>
 
           {/* Fallback to entrance */}

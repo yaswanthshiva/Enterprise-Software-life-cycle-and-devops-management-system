@@ -51,7 +51,7 @@ export const QualityAssurance = () => {
   // Permission Flags (Admins, PMs, Testers, and Developers have authoring clearance)
   const canManageTestCases = isAdmin || isProjectManager || isTester || isDeveloper;
   const canExecuteTestCases = isAdmin || isProjectManager || isTester || isDeveloper;
-  const canCreateIssues = isAdmin || isProjectManager || isTester || isDeveloper || isDevOps || isBusinessAnalyst;
+  const canCreateIssues = isAdmin || isProjectManager || isTester || isDeveloper || isDevOps;
   const canUpdateIssues = isAdmin || isProjectManager || isTester || isDeveloper;
   const canAssignIssues = isAdmin || isProjectManager;
   const canDeleteIssues = isAdmin || isProjectManager;
