@@ -69,6 +69,9 @@ export const Dashboard = () => {
   const activeProjects = metrics.myProjects.filter(
     (p) => (p.status || '').toLowerCase() === 'active'
   ).length;
+  const planningProjects = metrics.myProjects.filter(
+    (p) => (p.status || '').toLowerCase() === 'planning'
+  ).length;
 
   const openReportedIssues = metrics.reportedIssues.filter(
     (i) => (i.status || '').toLowerCase() !== 'resolved' && (i.status || '').toLowerCase() !== 'closed'
@@ -262,7 +265,11 @@ export const Dashboard = () => {
                 ? 'Loading...'
                 : metrics.myProjects.length === 0
                 ? 'No project ownerships'
-                : `${activeProjects} active project scopes`}
+                : activeProjects > 0
+                ? `${activeProjects} active project scope${activeProjects > 1 ? 's' : ''}`
+                : planningProjects > 0
+                ? `${planningProjects} in planning phase`
+                : `${metrics.myProjects.length} project scope`}
             </span>
             <ArrowUpRight size={13} color="var(--text-muted)" />
           </div>
