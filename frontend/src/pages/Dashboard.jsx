@@ -154,7 +154,7 @@ export const Dashboard = () => {
             Welcome back, {user?.fullName || 'Engineer'}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.6' }}>
-            You are authenticated with <span className="badge badge-admin">{user?.role}</span> security authority. 
+            You are authenticated with <span className="badge badge-admin">{user?.role}</span> security authority.
             Here is your live personal engineering command center tracking assigned workload, bug triage, and governance scopes.
           </p>
         </div>
@@ -237,8 +237,8 @@ export const Dashboard = () => {
               {loadingMetrics
                 ? 'Loading...'
                 : openAssignedIssues === 0
-                ? 'Zero active defect blockers'
-                : `${openAssignedIssues} pending resolution`}
+                  ? 'Zero active defect blockers'
+                  : `${openAssignedIssues} pending resolution`}
             </span>
             <ArrowUpRight size={13} color="var(--text-muted)" />
           </div>
@@ -264,12 +264,12 @@ export const Dashboard = () => {
               {loadingMetrics
                 ? 'Loading...'
                 : metrics.myProjects.length === 0
-                ? 'No project ownerships'
-                : activeProjects > 0
-                ? `${activeProjects} active project scope${activeProjects > 1 ? 's' : ''}`
-                : planningProjects > 0
-                ? `${planningProjects} in planning phase`
-                : `${metrics.myProjects.length} project scope`}
+                  ? 'No project ownerships'
+                  : activeProjects > 0
+                    ? `${activeProjects} active project scope${activeProjects > 1 ? 's' : ''}`
+                    : planningProjects > 0
+                      ? `${planningProjects} in planning phase`
+                      : `${metrics.myProjects.length} project scope`}
             </span>
             <ArrowUpRight size={13} color="var(--text-muted)" />
           </div>
@@ -295,8 +295,8 @@ export const Dashboard = () => {
               {loadingMetrics
                 ? 'Loading...'
                 : openReportedIssues === 0
-                ? 'All reported bugs resolved'
-                : `${openReportedIssues} under active triage`}
+                  ? 'All reported bugs resolved'
+                  : `${openReportedIssues} under active triage`}
             </span>
             <ArrowUpRight size={13} color="var(--text-muted)" />
           </div>
