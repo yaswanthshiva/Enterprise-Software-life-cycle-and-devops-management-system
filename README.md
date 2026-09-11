@@ -234,16 +234,6 @@ The database includes pre-configured enterprise demo accounts for testing all ac
 
 ---
 
-## 📑 API Documentation & Swagger
-
-When the backend application is running, interactive Swagger / OpenAPI documentation is accessible at:
-- **Swagger UI**: [http://localhost:8080/swagger-ui.html](http://localhost:8080/swagger-ui.html)
-- **OpenAPI JSON Spec**: [http://localhost:8080/v3/api-docs](http://localhost:8080/v3/api-docs)
-
-A complete Postman test collection with sample payloads for all endpoints is also included in [`NeuroForge_Postman_Collection.json`](NeuroForge_Postman_Collection.json).
-
----
-
 ## 📜 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
