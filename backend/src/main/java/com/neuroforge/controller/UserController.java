@@ -78,4 +78,13 @@ public class UserController {
         authService.changePassword(currentUser.getUserId(), request);
         return ResponseEntity.ok(ApiResponse.success("Password changed successfully", null));
     }
+
+    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(
+            @AuthenticationPrincipal UserDetailsImpl currentUser,
+            @PathVariable Long userId) {
+        userService.deleteUser(currentUser, userId);
+        return ResponseEntity.ok(ApiResponse.success("User deleted successfully", null));
+    }
 }

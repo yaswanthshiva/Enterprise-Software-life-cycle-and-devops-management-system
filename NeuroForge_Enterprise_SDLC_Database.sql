@@ -73,7 +73,7 @@ CREATE TABLE teams (
     description TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (team_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id)
+    FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -85,8 +85,8 @@ CREATE TABLE team_members (
     role_in_team VARCHAR(50) NOT NULL,
     joined_date DATE DEFAULT(CURRENT_DATE),
     PRIMARY KEY (team_id, user_id),
-    FOREIGN KEY (team_id) REFERENCES teams (team_id),
-    FOREIGN KEY (user_id) REFERENCES users (user_id)
+    FOREIGN KEY (team_id) REFERENCES teams (team_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -102,8 +102,8 @@ CREATE TABLE requirements (
     created_by BIGINT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (requirement_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id),
-    FOREIGN KEY (created_by) REFERENCES users (user_id)
+    FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
 -- ============================================================
@@ -119,7 +119,7 @@ CREATE TABLE user_stories (
     status VARCHAR(50),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (story_id),
-    FOREIGN KEY (requirement_id) REFERENCES requirements (requirement_id)
+    FOREIGN KEY (requirement_id) REFERENCES requirements (requirement_id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -135,7 +135,7 @@ CREATE TABLE sprints (
     end_date DATE NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (sprint_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id)
+    FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE
 );
 
 -- ============================================================
@@ -153,8 +153,8 @@ CREATE TABLE tasks (
     due_date DATE NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (task_id),
-    FOREIGN KEY (sprint_id) REFERENCES sprints (sprint_id),
-    FOREIGN KEY (story_id) REFERENCES user_stories (story_id),
+    FOREIGN KEY (sprint_id) REFERENCES sprints (sprint_id) ON DELETE CASCADE,
+    FOREIGN KEY (story_id) REFERENCES user_stories (story_id) ON DELETE SET NULL,
     FOREIGN KEY (assigned_to) REFERENCES users (user_id)
 );
 
@@ -172,8 +172,8 @@ CREATE TABLE releases (
     created_by BIGINT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (release_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id),
-    FOREIGN KEY (created_by) REFERENCES users (user_id),
+    FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+    FOREIGN KEY (created_by) REFERENCES users (user_id) ON DELETE SET NULL,
     CONSTRAINT uk_project_release UNIQUE (project_id, version_number)
 );
 
@@ -191,9 +191,9 @@ CREATE TABLE deployments (
     notes TEXT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (deployment_id),
-    FOREIGN KEY (project_id) REFERENCES projects (project_id),
-    FOREIGN KEY (release_id) REFERENCES releases (release_id),
-    FOREIGN KEY (deployed_by) REFERENCES users (user_id)
+    FOREIGN KEY (project_id) REFERENCES projects (project_id) ON DELETE CASCADE,
+    FOREIGN KEY (release_id) REFERENCES releases (release_id) ON DELETE CASCADE,
+    FOREIGN KEY (deployed_by) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
 -- ============================================================
@@ -211,9 +211,9 @@ CREATE TABLE ai_suggestions (
     generated_time DATETIME DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(50),
     PRIMARY KEY (suggestion_id),
-    FOREIGN KEY (requirement_id) REFERENCES requirements (requirement_id),
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (reviewed_by) REFERENCES users (user_id),
+    FOREIGN KEY (requirement_id) REFERENCES requirements (requirement_id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE CASCADE,
+    FOREIGN KEY (reviewed_by) REFERENCES users (user_id) ON DELETE SET NULL,
     CHECK (
         (
             requirement_id IS NOT NULL
@@ -241,8 +241,8 @@ CREATE TABLE test_cases (
     execution_date DATETIME NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (test_case_id),
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
-    FOREIGN KEY (executed_by) REFERENCES users (user_id)
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE CASCADE,
+    FOREIGN KEY (executed_by) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
 -- ============================================================
@@ -260,9 +260,9 @@ CREATE TABLE issues (
     status VARCHAR(50),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (issue_id),
-    FOREIGN KEY (task_id) REFERENCES tasks (task_id),
+    FOREIGN KEY (task_id) REFERENCES tasks (task_id) ON DELETE CASCADE,
     FOREIGN KEY (reported_by) REFERENCES users (user_id),
-    FOREIGN KEY (assigned_to) REFERENCES users (user_id)
+    FOREIGN KEY (assigned_to) REFERENCES users (user_id) ON DELETE SET NULL
 );
 
 -- ============================================================

@@ -16,11 +16,12 @@ import {
   ArrowUpRight,
   AlertCircle,
   Edit3,
+  Trash2,
   Shield
 } from 'lucide-react';
 
 export const Projects = () => {
-  const { user, canCreateProject, canManageProjects } = useAuth();
+  const { user, isAdmin, canCreateProject, canManageProjects } = useAuth();
   const navigate = useNavigate();
 
   const [projects, setProjects] = useState([]);
@@ -34,6 +35,8 @@ export const Projects = () => {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectToDelete, setProjectToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchProjects = async () => {
     setLoading(true);
@@ -68,6 +71,21 @@ export const Projects = () => {
     setProjects((prev) =>
       prev.map((p) => (p.projectId === updatedProject.projectId ? updatedProject : p))
     );
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+    setDeleting(true);
+    try {
+      await projectApi.deleteProject(projectToDelete.projectId);
+      setProjects((prev) => prev.filter((p) => p.projectId !== projectToDelete.projectId));
+      setProjectToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete project:', err);
+      alert(err.response?.data?.message || 'Failed to delete project.');
+    } finally {
+      setDeleting(false);
+    }
   };
 
   // Filtered by text search
@@ -419,6 +437,21 @@ export const Projects = () => {
                     View
                     <ArrowUpRight size={13} />
                   </Link>
+
+                  {isAdmin && (
+                    <button
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => setProjectToDelete(p)}
+                      title="Permanently delete project and all dependencies (Admin only)"
+                      style={{
+                        padding: '4px 8px',
+                        color: 'var(--danger, #ef4444)',
+                        borderColor: 'rgba(239, 68, 68, 0.3)',
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
@@ -442,6 +475,97 @@ export const Projects = () => {
         }}
         onProjectUpdated={handleProjectUpdated}
       />
+
+      {/* Delete Confirmation Modal for Admin */}
+      {projectToDelete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '20px',
+        }}>
+          <div className="glass-card animate-fade-in" style={{
+            width: '100%',
+            maxWidth: '480px',
+            padding: '26px',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.85)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--danger, #ef4444)',
+              }}>
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+                  Delete Project
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--danger, #ef4444)' }}>
+                  Permanent Cascade Deletion
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '16px' }}>
+              Are you sure you want to permanently delete <strong style={{ color: 'var(--text-primary)' }}>{projectToDelete.name}</strong>?
+            </p>
+
+            <div style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '12px 14px',
+              fontSize: '0.82rem',
+              color: 'var(--text-muted)',
+              marginBottom: '22px',
+              lineHeight: '1.45',
+            }}>
+              ⚠️ <strong>Warning:</strong> This will cascade delete all associated <strong>sprints, tasks, requirements, user stories, releases, test cases, and issues</strong>. This action cannot be reversed.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setProjectToDelete(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={handleDeleteProject}
+                disabled={deleting}
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  borderColor: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                {deleting ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

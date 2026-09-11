@@ -178,7 +178,7 @@ export const ProjectDetail = () => {
     },
     {
       id: 'sprints',
-      title: '06 • Agile Sprints & Kanban',
+      title: '06 • Sprints',
       desc: 'Sprint backlogs, burn-down metrics, and task board execution',
       path: `/workspace/sprints?projectId=${projectId}`,
       icon: Kanban,

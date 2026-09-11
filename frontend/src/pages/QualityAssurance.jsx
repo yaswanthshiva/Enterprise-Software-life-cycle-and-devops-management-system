@@ -703,7 +703,7 @@ export const QualityAssurance = () => {
             title="Refresh dataset"
           >
             <RefreshCw size={14} className={loadingData ? 'spin' : ''} />
-            <span>Sync Telemetry</span>
+            <span>Sync</span>
           </button>
 
           {activeTab === 'TEST_CASES' && canManageTestCases && (
@@ -935,7 +935,7 @@ export const QualityAssurance = () => {
             }}
           >
             <Bug size={14} />
-            <span>Defect Triage ({issues.length})</span>
+            <span>Defects Identified ({issues.length})</span>
           </button>
         </div>
       </div>
@@ -983,54 +983,35 @@ export const QualityAssurance = () => {
               </div>
             </div>
 
-            {/* Test Type Filter & New Test Case Button */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Type:</label>
-                <select
-                  className="form-select"
-                  style={{ width: 'auto', fontSize: '0.78rem', height: '32px', padding: '4px 10px' }}
-                  value={tcTypeFilter}
-                  onChange={(e) => setTcTypeFilter(e.target.value)}
-                >
-                  <option value="ALL">All Types</option>
-                  <option value="Functional">Functional</option>
-                  <option value="Regression">Regression</option>
-                  <option value="Integration">Integration</option>
-                  <option value="Security">Security</option>
-                  <option value="Performance">Performance</option>
-                </select>
-              </div>
-
-              {canManageTestCases && (
-                <button
-                  className="btn btn-primary btn-sm"
-                  onClick={handleOpenCreateTc}
-                  style={{ height: '32px', padding: '0 12px' }}
-                >
-                  <Plus size={14} />
-                  <span>New Test Case</span>
-                </button>
-              )}
+            {/* Test Type Filter */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <label style={{ fontSize: '0.78rem', color: 'var(--text-secondary)' }}>Type:</label>
+              <select
+                className="form-select"
+                style={{ width: 'auto', fontSize: '0.78rem', height: '32px', padding: '4px 10px' }}
+                value={tcTypeFilter}
+                onChange={(e) => setTcTypeFilter(e.target.value)}
+              >
+                <option value="ALL">All Types</option>
+                <option value="Functional">Functional</option>
+                <option value="Regression">Regression</option>
+                <option value="Integration">Integration</option>
+                <option value="Security">Security</option>
+                <option value="Performance">Performance</option>
+              </select>
             </div>
           </div>
 
           {/* Test Case Cards List */}
           {filteredTestCases.length === 0 ? (
-            <div className="glass-card" style={{ textAlign: 'center', padding: '50px 20px' }}>
-              <TestTube2 size={36} color="var(--text-muted)" style={{ margin: '0 auto 12px' }} />
+            <div className="glass-card" style={{ textAlign: 'center', padding: '60px 20px' }}>
+              <TestTube2 size={40} color="var(--text-muted)" style={{ margin: '0 auto 12px' }} />
               <h3 style={{ fontSize: '1.05rem', fontWeight: '700', color: 'var(--text-primary)' }}>No Test Cases Found</h3>
-              <p style={{ color: 'var(--text-muted)', fontSize: '0.82rem', maxWidth: '420px', margin: '6px auto 16px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.84rem', maxWidth: '420px', margin: '8px auto 0', lineHeight: '1.5' }}>
                 {testCases.length === 0
-                  ? 'No test cases have been authored for this project/sprint scope yet.'
+                  ? 'No test cases have been authored for this project/sprint scope yet. Use the "+ New Test Case" button above to author test cases.'
                   : 'No test cases match your active search and filter criteria.'}
               </p>
-              {canManageTestCases && (
-                <button className="btn btn-primary btn-sm" onClick={handleOpenCreateTc}>
-                  <Plus size={14} />
-                  <span>Author First Test Case</span>
-                </button>
-              )}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

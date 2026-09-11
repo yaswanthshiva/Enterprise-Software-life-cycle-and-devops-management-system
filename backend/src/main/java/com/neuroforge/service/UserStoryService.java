@@ -6,8 +6,10 @@ import com.neuroforge.dto.response.UserStoryResponse;
 import com.neuroforge.entity.Requirement;
 import com.neuroforge.entity.UserStory;
 import com.neuroforge.exception.ResourceNotFoundException;
+import com.neuroforge.entity.Task;
 import com.neuroforge.repository.ProjectRepository;
 import com.neuroforge.repository.RequirementRepository;
+import com.neuroforge.repository.TaskRepository;
 import com.neuroforge.repository.UserStoryRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ public class UserStoryService {
     private final UserStoryRepository userStoryRepository;
     private final RequirementRepository requirementRepository;
     private final ProjectRepository projectRepository;
+    private final TaskRepository taskRepository;
 
     @Transactional
     public UserStoryResponse createUserStory(Long requirementId, UserStoryCreateRequest request) {
@@ -123,6 +126,16 @@ public class UserStoryService {
     public void deleteUserStory(Long storyId) {
         UserStory story = userStoryRepository.findById(storyId)
                 .orElseThrow(() -> new ResourceNotFoundException("UserStory", "id", storyId));
+
+        // Unlink any tasks referencing this user story so tasks remain on the Kanban board
+        List<Task> linkedTasks = taskRepository.findByStory_StoryId(storyId);
+        if (!linkedTasks.isEmpty()) {
+            for (Task task : linkedTasks) {
+                task.setStory(null);
+            }
+            taskRepository.saveAll(linkedTasks);
+            log.info("Unlinked {} tasks from user story id={}", linkedTasks.size(), storyId);
+        }
 
         userStoryRepository.delete(story);
         log.info("UserStory deleted: id={}", storyId);

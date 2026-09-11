@@ -8,6 +8,18 @@ import com.neuroforge.entity.User;
 import com.neuroforge.exception.ResourceNotFoundException;
 import com.neuroforge.repository.ProjectRepository;
 import com.neuroforge.repository.UserRepository;
+import com.neuroforge.entity.Deployment;
+import com.neuroforge.entity.Release;
+import com.neuroforge.entity.Requirement;
+import com.neuroforge.entity.Sprint;
+import com.neuroforge.entity.Team;
+import com.neuroforge.entity.TeamMember;
+import com.neuroforge.repository.DeploymentRepository;
+import com.neuroforge.repository.ReleaseRepository;
+import com.neuroforge.repository.RequirementRepository;
+import com.neuroforge.repository.SprintRepository;
+import com.neuroforge.repository.TeamMemberRepository;
+import com.neuroforge.repository.TeamRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +38,15 @@ public class ProjectService {
 
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final SprintRepository sprintRepository;
+    private final SprintService sprintService;
+    private final RequirementRepository requirementRepository;
+    private final RequirementService requirementService;
+    private final ReleaseRepository releaseRepository;
+    private final ReleaseService releaseService;
+    private final DeploymentRepository deploymentRepository;
+    private final TeamRepository teamRepository;
+    private final TeamMemberRepository teamMemberRepository;
 
     @Transactional
     public ProjectResponse createProject(Long ownerId, ProjectCreateRequest request) {
@@ -163,10 +184,8 @@ public class ProjectService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
 
         checkProjectOwnership(project, currentUser);
-
-        project.setStatus("Archived");
-        projectRepository.save(project);
-        log.info("Project archived: id={}, archivedBy={}", projectId, currentUser.getEmail());
+        performCascadeDeleteProject(project);
+        log.info("Project permanently deleted with all cascades: id={}, deletedBy={}", projectId, currentUser.getEmail());
     }
 
     @Transactional
@@ -174,8 +193,48 @@ public class ProjectService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new ResourceNotFoundException("Project", "id", projectId));
 
-        project.setStatus("Archived");
-        projectRepository.save(project);
-        log.info("Project archived: id={}", projectId);
+        performCascadeDeleteProject(project);
+        log.info("Project permanently deleted with all cascades: id={}", projectId);
+    }
+
+    private void performCascadeDeleteProject(Project project) {
+        Long projectId = project.getProjectId();
+
+        // 1. Delete all sprints and their child tasks, test cases, issues, ai suggestions
+        List<Sprint> sprints = sprintRepository.findByProject_ProjectIdOrderByStartDateAsc(projectId);
+        for (Sprint sprint : sprints) {
+            sprintService.deleteSprint(sprint.getSprintId());
+        }
+
+        // 2. Delete all requirements and their child user stories, ai suggestions, unlinking tasks
+        List<Requirement> requirements = requirementRepository.findByProject_ProjectId(projectId);
+        for (Requirement req : requirements) {
+            requirementService.deleteRequirement(req.getRequirementId());
+        }
+
+        // 3. Delete all releases and their child deployments
+        List<Release> releases = releaseRepository.findByProject_ProjectIdOrderByCreatedAtDesc(projectId);
+        for (Release rel : releases) {
+            releaseService.deleteRelease(rel.getReleaseId());
+        }
+
+        // 4. Delete any remaining deployments
+        List<Deployment> deployments = deploymentRepository.findByProject_ProjectId(projectId);
+        if (!deployments.isEmpty()) {
+            deploymentRepository.deleteAll(deployments);
+        }
+
+        // 5. Delete teams and team members
+        List<Team> teams = teamRepository.findByProject_ProjectId(projectId);
+        for (Team team : teams) {
+            List<TeamMember> members = teamMemberRepository.findById_TeamId(team.getTeamId());
+            if (!members.isEmpty()) {
+                teamMemberRepository.deleteAll(members);
+            }
+            teamRepository.delete(team);
+        }
+
+        // 6. Delete project
+        projectRepository.delete(project);
     }
 }

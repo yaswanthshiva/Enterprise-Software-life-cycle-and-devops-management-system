@@ -3,13 +3,20 @@ package com.neuroforge.service;
 import com.neuroforge.dto.request.SprintCreateRequest;
 import com.neuroforge.dto.request.SprintUpdateRequest;
 import com.neuroforge.dto.response.SprintResponse;
+import com.neuroforge.entity.AiSuggestion;
+import com.neuroforge.entity.Issue;
 import com.neuroforge.entity.Project;
 import com.neuroforge.entity.Sprint;
+import com.neuroforge.entity.Task;
+import com.neuroforge.entity.TestCase;
 import com.neuroforge.exception.BadRequestException;
 import com.neuroforge.exception.ResourceNotFoundException;
+import com.neuroforge.repository.AiSuggestionRepository;
+import com.neuroforge.repository.IssueRepository;
 import com.neuroforge.repository.ProjectRepository;
 import com.neuroforge.repository.SprintRepository;
 import com.neuroforge.repository.TaskRepository;
+import com.neuroforge.repository.TestCaseRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +33,9 @@ public class SprintService {
     private final SprintRepository sprintRepository;
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
+    private final TestCaseRepository testCaseRepository;
+    private final IssueRepository issueRepository;
+    private final AiSuggestionRepository aiSuggestionRepository;
 
     @Transactional
     public SprintResponse createSprint(Long projectId, SprintCreateRequest request) {
@@ -143,6 +153,37 @@ public class SprintService {
         Sprint sprint = sprintRepository.findById(sprintId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sprint", "id", sprintId));
 
+        List<Task> tasks = taskRepository.findBySprint_SprintId(sprintId);
+
+        // 1. Delete associated test cases for sprint tasks
+        List<TestCase> testCases = testCaseRepository.findByTask_Sprint_SprintId(sprintId);
+        if (!testCases.isEmpty()) {
+            testCaseRepository.deleteAll(testCases);
+            log.info("Deleted {} test cases for sprint id={}", testCases.size(), sprintId);
+        }
+
+        // 2. Delete associated issues for sprint tasks
+        List<Issue> issues = issueRepository.findByTask_Sprint_SprintId(sprintId);
+        if (!issues.isEmpty()) {
+            issueRepository.deleteAll(issues);
+            log.info("Deleted {} issues for sprint id={}", issues.size(), sprintId);
+        }
+
+        // 3. Delete associated AI suggestions for sprint tasks
+        for (Task t : tasks) {
+            List<AiSuggestion> suggestions = aiSuggestionRepository.findByTask_TaskIdOrderByGeneratedTimeDesc(t.getTaskId());
+            if (!suggestions.isEmpty()) {
+                aiSuggestionRepository.deleteAll(suggestions);
+            }
+        }
+
+        // 4. Delete tasks belonging to sprint
+        if (!tasks.isEmpty()) {
+            taskRepository.deleteAll(tasks);
+            log.info("Deleted {} tasks for sprint id={}", tasks.size(), sprintId);
+        }
+
+        // 5. Delete sprint
         sprintRepository.delete(sprint);
         log.info("Sprint deleted: id={}", sprintId);
     }

@@ -3,12 +3,17 @@ package com.neuroforge.service;
 import com.neuroforge.dto.request.RequirementCreateRequest;
 import com.neuroforge.dto.request.RequirementUpdateRequest;
 import com.neuroforge.dto.response.RequirementResponse;
+import com.neuroforge.entity.AiSuggestion;
 import com.neuroforge.entity.Project;
 import com.neuroforge.entity.Requirement;
+import com.neuroforge.entity.Task;
 import com.neuroforge.entity.User;
+import com.neuroforge.entity.UserStory;
 import com.neuroforge.exception.ResourceNotFoundException;
+import com.neuroforge.repository.AiSuggestionRepository;
 import com.neuroforge.repository.ProjectRepository;
 import com.neuroforge.repository.RequirementRepository;
+import com.neuroforge.repository.TaskRepository;
 import com.neuroforge.repository.UserRepository;
 import com.neuroforge.repository.UserStoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +33,8 @@ public class RequirementService {
     private final UserStoryRepository userStoryRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+    private final AiSuggestionRepository aiSuggestionRepository;
 
     @Transactional
     public RequirementResponse createRequirement(Long projectId, Long createdById, RequirementCreateRequest request) {
@@ -125,10 +132,33 @@ public class RequirementService {
         Requirement requirement = requirementRepository.findById(requirementId)
                 .orElseThrow(() -> new ResourceNotFoundException("Requirement", "id", requirementId));
 
-        // Delete associated user stories first
-        List<com.neuroforge.entity.UserStory> stories = userStoryRepository.findByRequirement_RequirementId(requirementId);
-        userStoryRepository.deleteAll(stories);
+        // 1. Delete associated AI suggestions for this requirement
+        List<AiSuggestion> suggestions = aiSuggestionRepository.findByRequirement_RequirementIdOrderByGeneratedTimeDesc(requirementId);
+        if (!suggestions.isEmpty()) {
+            aiSuggestionRepository.deleteAll(suggestions);
+            log.info("Deleted {} AI suggestions for requirement id={}", suggestions.size(), requirementId);
+        }
 
+        // 2. Unlink user stories from any tasks referencing them so tasks are preserved on the board
+        List<UserStory> stories = userStoryRepository.findByRequirement_RequirementId(requirementId);
+        for (UserStory story : stories) {
+            List<Task> linkedTasks = taskRepository.findByStory_StoryId(story.getStoryId());
+            for (Task task : linkedTasks) {
+                task.setStory(null);
+            }
+            if (!linkedTasks.isEmpty()) {
+                taskRepository.saveAll(linkedTasks);
+                log.info("Unlinked {} tasks from user story id={}", linkedTasks.size(), story.getStoryId());
+            }
+        }
+
+        // 3. Delete associated user stories
+        if (!stories.isEmpty()) {
+            userStoryRepository.deleteAll(stories);
+            log.info("Deleted {} user stories for requirement id={}", stories.size(), requirementId);
+        }
+
+        // 4. Delete the requirement
         requirementRepository.delete(requirement);
         log.info("Requirement deleted: id={}", requirementId);
     }

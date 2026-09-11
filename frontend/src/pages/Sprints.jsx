@@ -359,12 +359,9 @@ export const Sprints = () => {
             <Kanban size={24} />
           </div>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ fontSize: '1.6rem', margin: 0, letterSpacing: '-0.02em' }}>
-                Agile Sprints & Kanban Board
-              </h1>
-              <span className="badge badge-primary">Module 06</span>
-            </div>
+            <h1 style={{ fontSize: '1.6rem', margin: 0, letterSpacing: '-0.02em' }}>
+              Sprints
+            </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.88rem', margin: '4px 0 0 0' }}>
               Sprint milestone planning, velocity telemetry, and interactive task execution
             </p>

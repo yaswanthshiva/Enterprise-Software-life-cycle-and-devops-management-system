@@ -37,6 +37,12 @@ export const authApi = {
     const response = await api.get('/health');
     return response.data;
   },
+
+  // Delete user (Admin only)
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/users/${userId}`);
+    return response.data;
+  },
 };
 
 export default authApi;

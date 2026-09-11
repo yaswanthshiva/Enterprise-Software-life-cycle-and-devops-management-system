@@ -28,7 +28,7 @@ export const Sidebar = () => {
     { to: '/workspace/teams', label: 'Teams', icon: Users2 },
     { to: '/workspace/requirements', label: 'Requirements', icon: FileText },
     { to: '/workspace/ai/requirements', label: 'AI PRD Studio', icon: Sparkles, badge: 'AI' },
-    { to: '/workspace/sprints', label: 'Sprints & Kanban', icon: KanbanSquare },
+    { to: '/workspace/sprints', label: 'Sprints', icon: KanbanSquare },
     { to: '/workspace/ai/code', label: 'AI Code Assistant', icon: Cpu, badge: 'AI' },
     { to: '/workspace/qa', label: 'QA & Issues', icon: Bug },
     { to: '/workspace/releases', label: 'Releases & CI/CD', icon: Rocket },

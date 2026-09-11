@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../api/authApi';
-import { Users2, ShieldCheck, Filter, RefreshCw, AlertCircle, Search, ShieldAlert } from 'lucide-react';
+import { Users2, ShieldCheck, Filter, RefreshCw, AlertCircle, Search, ShieldAlert, Trash2, CheckCircle2 } from 'lucide-react';
 
 export const UserDirectory = () => {
-  const { user, canManageUsers } = useAuth();
+  const { user, isAdmin, canManageUsers } = useAuth();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Delete modal state
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchUsers = async () => {
     if (!canManageUsers) {
@@ -28,6 +33,24 @@ export const UserDirectory = () => {
       setError('Unable to load user directory. Ensure you have ADMIN or PROJECT_MANAGER authority.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+    setDeleting(true);
+    setError('');
+    setSuccessMessage('');
+    try {
+      await authApi.deleteUser(userToDelete.userId);
+      setUsers((prev) => prev.filter((u) => u.userId !== userToDelete.userId));
+      setSuccessMessage(`User "${userToDelete.name || userToDelete.fullName || userToDelete.email}" was successfully deleted.`);
+      setUserToDelete(null);
+    } catch (err) {
+      console.error('Failed to delete user:', err);
+      setError(err.response?.data?.message || 'Failed to delete user.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -95,6 +118,18 @@ export const UserDirectory = () => {
         </div>
       )}
 
+      {successMessage && (
+        <div className="alert" style={{
+          backgroundColor: 'rgba(34, 197, 94, 0.1)',
+          borderColor: 'rgba(34, 197, 94, 0.3)',
+          color: '#4ade80',
+          marginBottom: '16px',
+        }}>
+          <CheckCircle2 size={18} />
+          <span>{successMessage}</span>
+        </div>
+      )}
+
       {/* Filter and Search Bar */}
       <div className="glass-card" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
         {/* Search */}
@@ -112,7 +147,7 @@ export const UserDirectory = () => {
 
         {/* Role Filters */}
         <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-          {['', 'ADMIN', 'PROJECT_MANAGER', 'DEVELOPER', 'QA_ENGINEER', 'DEVOPS'].map((r) => (
+          {['', 'ADMIN', 'PROJECT_MANAGER', 'DEVELOPER', 'QA_ENGINEER', 'DEVOPS', 'BUSINESS_ANALYST'].map((r) => (
             <button
               key={r}
               className={`btn btn-sm ${selectedRole === r ? 'btn-primary' : 'btn-secondary'}`}
@@ -140,18 +175,19 @@ export const UserDirectory = () => {
               <th style={{ padding: '14px 20px' }}>Role</th>
               <th style={{ padding: '14px 20px' }}>Status</th>
               <th style={{ padding: '14px 20px' }}>Created</th>
+              {isAdmin && <th style={{ padding: '14px 20px', textAlign: 'right' }}>Actions</th>}
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={isAdmin ? 5 : 4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   Loading enterprise directory...
                 </td>
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan="4" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
+                <td colSpan={isAdmin ? 5 : 4} style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
                   No users found matching current filters.
                 </td>
               </tr>
@@ -209,12 +245,130 @@ export const UserDirectory = () => {
                   <td style={{ padding: '14px 20px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                     {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Active'}
                   </td>
+
+                  {isAdmin && (
+                    <td style={{ padding: '14px 20px', textAlign: 'right' }}>
+                      {Number(user?.userId) === Number(u.userId) ? (
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                          Current Admin
+                        </span>
+                      ) : (
+                        <button
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => setUserToDelete(u)}
+                          title="Permanently delete user account"
+                          style={{
+                            padding: '4px 10px',
+                            color: 'var(--danger, #ef4444)',
+                            borderColor: 'rgba(239, 68, 68, 0.3)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                          }}
+                        >
+                          <Trash2 size={13} />
+                          Delete
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Delete User Confirmation Modal for Admin */}
+      {userToDelete && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backdropFilter: 'blur(8px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 100,
+          padding: '20px',
+        }}>
+          <div className="glass-card animate-fade-in" style={{
+            width: '100%',
+            maxWidth: '480px',
+            padding: '26px',
+            border: '1px solid rgba(239, 68, 68, 0.4)',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.85)',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: 'var(--radius-sm)',
+                backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--danger, #ef4444)',
+              }}>
+                <Trash2 size={20} />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+                  Delete User Account
+                </h3>
+                <span style={{ fontSize: '0.78rem', color: 'var(--danger, #ef4444)' }}>
+                  Access Control Management
+                </span>
+              </div>
+            </div>
+
+            <p style={{ fontSize: '0.88rem', color: 'var(--text-secondary)', lineHeight: '1.5', marginBottom: '16px' }}>
+              Are you sure you want to permanently remove <strong style={{ color: 'var(--text-primary)' }}>{userToDelete.name || userToDelete.fullName || userToDelete.email}</strong> ({userToDelete.role}) from the organization?
+            </p>
+
+            <div style={{
+              backgroundColor: 'rgba(239, 68, 68, 0.08)',
+              border: '1px solid rgba(239, 68, 68, 0.2)',
+              borderRadius: 'var(--radius-sm)',
+              padding: '12px 14px',
+              fontSize: '0.82rem',
+              color: 'var(--text-muted)',
+              marginBottom: '22px',
+              lineHeight: '1.45',
+            }}>
+              🛡️ <strong>Safety Reassignment:</strong> Their team memberships will be removed, and any active projects, tasks, and reported issues will be safely reassigned to you ({user?.fullName || user?.email}) to preserve system continuity.
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => setUserToDelete(null)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn"
+                onClick={handleDeleteUser}
+                disabled={deleting}
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  borderColor: '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                {deleting ? 'Deleting...' : 'Delete User'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

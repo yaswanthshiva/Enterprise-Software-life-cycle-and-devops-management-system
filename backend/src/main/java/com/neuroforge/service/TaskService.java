@@ -4,13 +4,19 @@ import com.neuroforge.dto.request.TaskCreateRequest;
 import com.neuroforge.dto.request.TaskUpdateRequest;
 import com.neuroforge.dto.response.KanbanBoardResponse;
 import com.neuroforge.dto.response.TaskResponse;
+import com.neuroforge.entity.AiSuggestion;
+import com.neuroforge.entity.Issue;
 import com.neuroforge.entity.Sprint;
 import com.neuroforge.entity.Task;
+import com.neuroforge.entity.TestCase;
 import com.neuroforge.entity.User;
 import com.neuroforge.entity.UserStory;
 import com.neuroforge.exception.ResourceNotFoundException;
+import com.neuroforge.repository.AiSuggestionRepository;
+import com.neuroforge.repository.IssueRepository;
 import com.neuroforge.repository.SprintRepository;
 import com.neuroforge.repository.TaskRepository;
+import com.neuroforge.repository.TestCaseRepository;
 import com.neuroforge.repository.UserRepository;
 import com.neuroforge.repository.UserStoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +37,9 @@ public class TaskService {
     private final SprintRepository sprintRepository;
     private final UserStoryRepository userStoryRepository;
     private final UserRepository userRepository;
+    private final TestCaseRepository testCaseRepository;
+    private final IssueRepository issueRepository;
+    private final AiSuggestionRepository aiSuggestionRepository;
 
     @Transactional
     public TaskResponse createTask(TaskCreateRequest request) {
@@ -241,6 +250,28 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task", "id", taskId));
 
+        // 1. Delete associated test cases
+        List<TestCase> testCases = testCaseRepository.findByTask_TaskId(taskId);
+        if (!testCases.isEmpty()) {
+            testCaseRepository.deleteAll(testCases);
+            log.info("Deleted {} test cases for task id={}", testCases.size(), taskId);
+        }
+
+        // 2. Delete associated issues
+        List<Issue> issues = issueRepository.findByTask_TaskId(taskId);
+        if (!issues.isEmpty()) {
+            issueRepository.deleteAll(issues);
+            log.info("Deleted {} issues for task id={}", issues.size(), taskId);
+        }
+
+        // 3. Delete associated AI suggestions
+        List<AiSuggestion> suggestions = aiSuggestionRepository.findByTask_TaskIdOrderByGeneratedTimeDesc(taskId);
+        if (!suggestions.isEmpty()) {
+            aiSuggestionRepository.deleteAll(suggestions);
+            log.info("Deleted {} AI suggestions for task id={}", suggestions.size(), taskId);
+        }
+
+        // 4. Delete the task
         taskRepository.delete(task);
         log.info("Task deleted: id={}", taskId);
     }

@@ -3,11 +3,13 @@ package com.neuroforge.service;
 import com.neuroforge.dto.request.ReleaseCreateRequest;
 import com.neuroforge.dto.request.ReleaseUpdateRequest;
 import com.neuroforge.dto.response.ReleaseResponse;
+import com.neuroforge.entity.Deployment;
 import com.neuroforge.entity.Project;
 import com.neuroforge.entity.Release;
 import com.neuroforge.entity.User;
 import com.neuroforge.exception.BadRequestException;
 import com.neuroforge.exception.ResourceNotFoundException;
+import com.neuroforge.repository.DeploymentRepository;
 import com.neuroforge.repository.ProjectRepository;
 import com.neuroforge.repository.ReleaseRepository;
 import com.neuroforge.repository.UserRepository;
@@ -27,6 +29,7 @@ public class ReleaseService {
     private final ReleaseRepository releaseRepository;
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
+    private final DeploymentRepository deploymentRepository;
 
     @Transactional
     public ReleaseResponse createRelease(Long creatorUserId, ReleaseCreateRequest request) {
@@ -123,6 +126,13 @@ public class ReleaseService {
     public void deleteRelease(Long releaseId) {
         Release release = releaseRepository.findById(releaseId)
                 .orElseThrow(() -> new ResourceNotFoundException("Release", "id", releaseId));
+
+        // Delete associated deployments before deleting release
+        List<Deployment> deployments = deploymentRepository.findByRelease_ReleaseId(releaseId);
+        if (!deployments.isEmpty()) {
+            deploymentRepository.deleteAll(deployments);
+            log.info("Deleted {} deployments for release id={}", deployments.size(), releaseId);
+        }
 
         releaseRepository.delete(release);
         log.info("Release deleted: id={}, version={}", releaseId, release.getVersionNumber());
